@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('../config/config');
 const logger = require('../utils/logger');
+const notificationService = require('../services/notificationService');
 const { schemas } = require('../utils/validators');
 const registerSchema = schemas.register;
 const loginSchema = schemas.login;
@@ -44,6 +45,10 @@ exports.register = async (req, res, next) => {
       alertPreferences: { email: true, sms: false, push: true, frequency: 'instant' },
     });
 
+    // Send welcome email asynchronously
+    notificationService.sendWelcomeEmail(user).catch(err => {
+      logger.error(`Failed to send welcome email to ${user.email}: ${err.message}`);
+    });
 
     const tokens = generateTokens(user._id);
     logger.info(`New user registered: ${email} (role: ${user.role})`);

@@ -1,4 +1,5 @@
 const Alert = require('../models/Alert');
+const encryptionService = require('../services/encryptionService');
 const logger = require('../utils/logger');
 
 exports.getAlerts = async (req, res, next) => {
@@ -10,11 +11,24 @@ exports.getAlerts = async (req, res, next) => {
     if (severity) filter.severity = severity;
     if (type) filter.type = type;
 
-    const alerts = await Alert.find(filter)
+    const alertsRaw = await Alert.find(filter)
       .populate('breachId', 'name domain severity breachDate dataClasses pwnCount')
+      .populate('identifierId', 'value')
       .sort('-createdAt')
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
+
+    const alerts = alertsRaw.map((alert) => {
+      const alertObj = alert.toObject();
+      if (alert.identifierId && alert.identifierId.value) {
+        try {
+          alertObj.monitorValue = encryptionService.decrypt(alert.identifierId.value);
+        } catch (e) {
+          alertObj.monitorValue = 'Unknown';
+        }
+      }
+      return alertObj;
+    });
 
     const total = await Alert.countDocuments(filter);
 
@@ -34,17 +48,7 @@ exports.getAlerts = async (req, res, next) => {
   }
 };
 
-exports.getUnreadCount = async (req, res, next) => {
-  try {
-    const count = await Alert.countDocuments({
-      userId: req.user.id,
-      status: 'unread',
-    });
-    res.json({ success: true, data: { count } });
-  } catch (error) {
-    next(error);
-  }
-};
+
 
 exports.markAsRead = async (req, res, next) => {
   try {

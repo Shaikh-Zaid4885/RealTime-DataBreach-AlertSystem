@@ -120,7 +120,7 @@ export default function AddMonitorForm({ onAdd }) {
       )}
 
       <div style={{ marginTop: 'auto', paddingTop: 'var(--space-4)', display: 'flex', gap: 'var(--space-3)' }}>
-        <Button type="button" onClick={handleCheck} variant="secondary" icon={Search} disabled={checking || loading} className="w-full">
+        <Button type="button" onClick={handleCheck} variant="outline" icon={Search} disabled={checking || loading} className="w-full">
           {checking ? 'Checking...' : 'Check'}
         </Button>
         <Button type="submit" variant="primary" icon={Plus} disabled={loading || checking} className="w-full">

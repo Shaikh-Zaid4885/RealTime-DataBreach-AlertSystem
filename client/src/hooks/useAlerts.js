@@ -15,11 +15,14 @@ export function useAlerts() {
       if (filters.severity) params.append('severity', filters.severity);
       if (filters.status) params.append('status', filters.status);
       if (filters.type) params.append('type', filters.type);
-      const res = await api.get(`/alerts?${params.toString()}`);
-      const data = res.data?.data?.alerts || res.data.alerts || res.data;
+      const [alertsRes, countRes] = await Promise.all([
+        api.get(`/alerts?${params.toString()}`),
+        api.get('/alerts/unread/count')
+      ]);
+      const data = alertsRes.data?.data?.alerts || alertsRes.data.alerts || alertsRes.data;
       const alertList = Array.isArray(data) ? data : [];
       setAlerts(alertList);
-      setUnreadCount(alertList.filter((a) => a.status === 'unread').length);
+      setUnreadCount(countRes.data?.data?.count || 0);
     } catch {
       setAlerts([]);
       setUnreadCount(0);
@@ -38,6 +41,7 @@ export function useAlerts() {
       prev.map((a) => (a._id === alertId ? { ...a, status: 'read' } : a))
     );
     setUnreadCount((prev) => Math.max(0, prev - 1));
+    window.dispatchEvent(new Event('alerts_updated'));
   }, []);
 
   const markAllRead = useCallback(async () => {
@@ -48,10 +52,17 @@ export function useAlerts() {
     }
     setAlerts((prev) => prev.map((a) => ({ ...a, status: 'read' })));
     setUnreadCount(0);
+    window.dispatchEvent(new Event('alerts_updated'));
   }, []);
 
   useEffect(() => {
     fetchAlerts();
+    
+    const handleUpdate = () => {
+      fetchAlerts();
+    };
+    window.addEventListener('alerts_updated', handleUpdate);
+    return () => window.removeEventListener('alerts_updated', handleUpdate);
   }, [fetchAlerts]);
 
   useEffect(() => {
@@ -63,5 +74,7 @@ export function useAlerts() {
     return unsub;
   }, [socket]);
 
-  return { alerts, unreadCount, loading, fetchAlerts, markAsRead, markAllRead };
+   return { alerts, unreadCount, loading, fetchAlerts, markAsRead, markAllRead };
 }
+
+

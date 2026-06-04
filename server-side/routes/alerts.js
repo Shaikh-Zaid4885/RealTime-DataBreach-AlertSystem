@@ -6,7 +6,6 @@ const { protect } = require('../middleware/auth');
 router.use(protect);
 
 router.get('/', alertController.getAlerts);
-router.get('/unread/count', alertController.getUnreadCount);
 router.patch('/read-all', alertController.markAllAsRead);
 router.patch('/:id/read', alertController.markAsRead);
 router.patch('/:id/action', alertController.markActionCompleted);

@@ -3,6 +3,7 @@ const Alert = require('../models/Alert');
 const MonitoredIdentifier = require('../models/MonitoredIdentifier');
 const xposedOrNotService = require('../services/xposedOrNotService');
 const breachAnalyzer = require('../services/breachAnalyzer');
+const encryptionService = require('../services/encryptionService');
 const logger = require('../utils/logger');
 
 exports.getBreaches = async (req, res, next) => {
@@ -103,16 +104,28 @@ exports.getUserBreaches = async (req, res, next) => {
   try {
     const alerts = await Alert.find({ userId: req.user.id })
       .populate('breachId')
+      .populate('identifierId')
       .sort('-createdAt');
 
     const breaches = alerts
       .filter((a) => a.breachId)
-      .map((a) => ({
-        ...a.breachId.toObject(),
-        alertId: a._id,
-        alertStatus: a.status,
-        alertCreatedAt: a.createdAt,
-      }));
+      .map((a) => {
+        let monitorValue = null;
+        if (a.identifierId && a.identifierId.value) {
+          try {
+            monitorValue = encryptionService.decrypt(a.identifierId.value);
+          } catch (e) {
+            monitorValue = 'Unknown';
+          }
+        }
+        return {
+          ...a.breachId.toObject(),
+          alertId: a._id,
+          alertStatus: a.status,
+          alertCreatedAt: a.createdAt,
+          monitorValue
+        };
+      });
 
     res.json({ success: true, data: { breaches } });
   } catch (error) {

@@ -7,7 +7,7 @@ export default function AlertItem({ alert, onMarkRead, onAction }) {
   const Icon = severityIcons[alert.severity] || Info;
 
   return (
-    <div className={`alert-item ${alert.status === 'unread' ? 'unread' : ''}`}>
+    <div id={`alert-${alert._id || alert.id}`} className={`alert-item ${alert.status === 'unread' ? 'unread' : ''}`}>
       <div className={`alert-icon-wrapper ${alert.severity}`}>
         <Icon size={18} />
       </div>
@@ -38,7 +38,10 @@ export default function AlertItem({ alert, onMarkRead, onAction }) {
           </div>
         )}
 
-        <div className="alert-time">{formatTimeAgo(alert.createdAt)}</div>
+        <div className="alert-time">
+          {formatTimeAgo(alert.createdAt)}
+          {alert.monitorValue && <span style={{ marginLeft: '8px', color: 'var(--text-muted)' }}>· Related to: {alert.monitorValue}</span>}
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-2)' }}>

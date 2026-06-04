@@ -2,26 +2,44 @@ const Breach = require('../models/Breach');
 const Alert = require('../models/Alert');
 const MonitoredIdentifier = require('../models/MonitoredIdentifier');
 const User = require('../models/User');
+const encryptionService = require('../services/encryptionService');
 const logger = require('../utils/logger');
 
 exports.getOverview = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    const [totalMonitors, activeMonitors, totalAlerts, unreadAlerts, totalBreaches, criticalBreaches] =
+    const [totalMonitors, activeMonitors, totalAlerts, unreadAlerts, userAlertsWithBreaches] =
       await Promise.all([
         MonitoredIdentifier.countDocuments({ userId }),
         MonitoredIdentifier.countDocuments({ userId, status: 'active' }),
         Alert.countDocuments({ userId }),
         Alert.countDocuments({ userId, status: 'unread' }),
-        Breach.countDocuments(),
-        Breach.countDocuments({ severity: 'critical' }),
+        Alert.find({ userId, type: 'breach_detected' }).select('breachId severity'),
       ]);
 
-    const recentAlerts = await Alert.find({ userId })
+    const totalBreaches = userAlertsWithBreaches.length;
+    const criticalBreaches = userAlertsWithBreaches.filter(
+      alert => alert.severity === 'CRITICAL' || alert.severity === 'critical'
+    ).length;
+
+    const recentAlertsRaw = await Alert.find({ userId })
       .populate('breachId', 'name severity domain')
+      .populate('identifierId', 'value')
       .sort('-createdAt')
       .limit(5);
+
+    const recentAlerts = recentAlertsRaw.map(alert => {
+      const alertObj = alert.toObject();
+      if (alert.identifierId && alert.identifierId.value) {
+        try {
+          alertObj.monitorValue = encryptionService.decrypt(alert.identifierId.value);
+        } catch (e) {
+          alertObj.monitorValue = 'Unknown';
+        }
+      }
+      return alertObj;
+    });
 
     const severityDistribution = await Alert.aggregate([
       { $match: { userId: req.user._id || req.user.id } },
@@ -60,55 +78,6 @@ exports.getOverview = async (req, res, next) => {
   }
 };
 
-exports.getTrends = async (req, res, next) => {
-  try {
-    const { period = '12months' } = req.query;
-    let startDate = new Date();
-
-    switch (period) {
-      case '7days':
-        startDate.setDate(startDate.getDate() - 7);
-        break;
-      case '30days':
-        startDate.setDate(startDate.getDate() - 30);
-        break;
-      case '6months':
-        startDate.setMonth(startDate.getMonth() - 6);
-        break;
-      case '12months':
-      default:
-        startDate.setFullYear(startDate.getFullYear() - 1);
-        break;
-    }
-
-    const trends = await Breach.aggregate([
-      { $match: { breachDate: { $gte: startDate } } },
-      {
-        $group: {
-          _id: {
-            year: { $year: '$breachDate' },
-            month: { $month: '$breachDate' },
-          },
-          count: { $sum: 1 },
-          totalRecords: { $sum: '$pwnCount' },
-          avgSeverity: { $avg: '$severityScore' },
-        },
-      },
-      { $sort: { '_id.year': 1, '_id.month': 1 } },
-    ]);
-
-    const formattedTrends = trends.map((t) => ({
-      month: `${t._id.year}-${String(t._id.month).padStart(2, '0')}`,
-      breaches: t.count,
-      records: t.totalRecords,
-      avgSeverity: Math.round(t.avgSeverity || 0),
-    }));
-
-    res.json({ success: true, data: { trends: formattedTrends, period } });
-  } catch (error) {
-    next(error);
-  }
-};
 
 exports.getDataTypes = async (req, res, next) => {
   try {

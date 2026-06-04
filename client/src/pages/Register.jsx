@@ -32,12 +32,20 @@ export default function Register() {
 
   return (
     <div className="auth-page">
-      <div className="auth-container">
-        <div className="auth-logo">
-          <div className="auth-logo-icon"><Shield size={28} /></div>
-          <span className="auth-logo-text">BreachGuard</span>
+      <div className="auth-banner">
+        <div className="auth-banner-content">
+          <div className="auth-logo-icon" style={{ width: 64, height: 64, marginBottom: 'var(--space-6)' }}><Shield size={32} /></div>
+          <h2>Join the front line of digital defense.</h2>
+          <p>Create an account to instantly monitor your domain and email assets against thousands of known data breaches.</p>
         </div>
-        <div className="auth-card">
+      </div>
+      <div className="auth-page-form-wrapper">
+        <div className="auth-container" style={{ maxWidth: 500 }}>
+          <div className="auth-logo mobile-logo-only">
+            <div className="auth-logo-icon"><Shield size={28} /></div>
+            <span className="auth-logo-text">BreachGuard</span>
+          </div>
+          <div className="auth-card">
           <h1 className="auth-title">Create Account</h1>
           <p className="auth-subtitle">Start monitoring your digital security</p>
 
@@ -91,6 +99,7 @@ export default function Register() {
             </Button>
           </form>
           <div className="auth-footer">Already have an account? <Link to="/login">Sign in</Link></div>
+        </div>
         </div>
       </div>
     </div>

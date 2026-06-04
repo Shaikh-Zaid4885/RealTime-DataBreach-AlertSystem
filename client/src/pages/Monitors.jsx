@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Monitor } from 'lucide-react';
+import { Monitor, Search } from 'lucide-react';
 import MonitorList from '../components/monitors/MonitorList';
 import api from '../api/axios';
 
 export default function Monitors() {
   const [monitors, setMonitors] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     document.title = 'Monitors — BreachGuard';
@@ -50,14 +51,31 @@ export default function Monitors() {
     }
   };
 
+  const filteredMonitors = monitors?.filter(m => 
+    m.value.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div>
-      <div className="page-header">
-        <h1 className="page-title">Monitored Identifiers</h1>
-        <p className="page-subtitle">Manage your emails, domains, and phone numbers under breach monitoring</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 className="page-title">Monitored Identifiers</h1>
+          <p className="page-subtitle">Manage your emails, domains, and phone numbers under breach monitoring</p>
+        </div>
+        <div style={{ position: 'relative', width: '300px' }}>
+          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input 
+            type="text" 
+            placeholder="Search identifiers..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="form-input"
+            style={{ paddingLeft: '36px', width: '100%' }}
+          />
+        </div>
       </div>
 
-      <MonitorList monitors={monitors} onDelete={handleDelete} onScan={handleScan} onToggle={handleToggle} scanningId={scanningId} />
+      <MonitorList monitors={filteredMonitors} onDelete={handleDelete} onScan={handleScan} onToggle={handleToggle} scanningId={scanningId} />
     </div>
   );
 }

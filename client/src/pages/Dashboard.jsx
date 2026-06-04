@@ -2,16 +2,13 @@ import { useState, useEffect } from 'react';
 import { Shield, Activity, Clock } from 'lucide-react';
 import StatsCards from '../components/dashboard/StatsCards';
 import BreachTimeline from '../components/dashboard/BreachTimeline';
-import RiskGauge from '../components/dashboard/RiskGauge';
 import RecentAlerts from '../components/dashboard/RecentAlerts';
-import BreachChart from '../components/analytics/BreachChart';
 import AddMonitorForm from '../components/monitors/AddMonitorForm';
 import BulkUpload from '../components/monitors/BulkUpload';
 import api from '../api/axios';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
-  const [trends, setTrends] = useState([]);
   const [breaches, setBreaches] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,14 +16,12 @@ export default function Dashboard() {
     document.title = 'Dashboard — BreachGuard';
     const fetchData = async () => {
       try {
-        const [overviewRes, trendsRes, breachesRes] = await Promise.all([
+        const [overviewRes, breachesRes] = await Promise.all([
           api.get('/analytics/overview'),
-          api.get('/analytics/trends'),
-          api.get('/breaches?limit=5')
+          api.get('/breaches/my-breaches')
         ]);
         
         setStats(overviewRes.data?.data);
-        setTrends(trendsRes.data?.data?.trends || []);
         
         const breachesData = breachesRes.data?.data?.breaches || breachesRes.data?.breaches || breachesRes.data || [];
         setBreaches(Array.isArray(breachesData) ? breachesData.slice(0, 5) : []);
@@ -43,9 +38,16 @@ export default function Dashboard() {
 
   const handleAddMonitor = async (data) => {
     await api.post('/monitors', data);
-    // Re-fetch overview stats to update Active Monitors count
-    const overviewRes = await api.get('/analytics/overview');
+    // Re-fetch overview stats and breaches to update all dashboard widgets
+    const [overviewRes, breachesRes] = await Promise.all([
+      api.get('/analytics/overview'),
+      api.get('/breaches/my-breaches')
+    ]);
+    
     setStats(overviewRes.data?.data);
+    
+    const breachesData = breachesRes.data?.data?.breaches || breachesRes.data?.breaches || breachesRes.data || [];
+    setBreaches(Array.isArray(breachesData) ? breachesData.slice(0, 5) : []);
   };
 
   const handleBulkUpload = () => {
@@ -97,19 +99,7 @@ export default function Dashboard() {
       <StatsCards stats={statsCards} />
 
       <div className="dashboard-grid">
-        <div className="dashboard-section">
-          <div className="dashboard-section-header">
-            <h2 className="dashboard-section-title"><Activity size={20} /> Breach Trends</h2>
-          </div>
-          <BreachChart data={trends} />
-        </div>
 
-        <div className="dashboard-section">
-          <div className="dashboard-section-header">
-            <h2 className="dashboard-section-title"><Shield size={20} /> Risk Assessment</h2>
-          </div>
-          <RiskGauge score={stats?.stats?.riskScore || 0} />
-        </div>
 
         <div className="dashboard-section">
           <div className="dashboard-section-header">

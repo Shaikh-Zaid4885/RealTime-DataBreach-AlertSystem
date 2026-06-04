@@ -33,11 +33,19 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      <div className="auth-container">
-        <div className="auth-logo">
-          <div className="auth-logo-icon"><Shield size={28} /></div>
-          <span className="auth-logo-text">BreachGuard</span>
+      <div className="auth-banner">
+        <div className="auth-banner-content">
+          <div className="auth-logo-icon" style={{ width: 64, height: 64, marginBottom: 'var(--space-6)' }}><Shield size={32} /></div>
+          <h2>Protect your digital identity.</h2>
+          <p>Real-time data breach monitoring and enterprise-grade threat intelligence to keep your data secure 24/7.</p>
         </div>
+      </div>
+      <div className="auth-page-form-wrapper">
+        <div className="auth-container">
+          <div className="auth-logo mobile-logo-only">
+            <div className="auth-logo-icon"><Shield size={28} /></div>
+            <span className="auth-logo-text">BreachGuard</span>
+          </div>
         <div className="auth-card">
           <h1 className="auth-title">Welcome back</h1>
           <p className="auth-subtitle">Sign in to monitor your digital security</p>
@@ -71,13 +79,11 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="auth-divider">or</div>
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', textAlign: 'center', padding: 'var(--space-3)', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
-            Demo: admin@breachalert.com / Admin@123
-          </div>
+
           <div className="auth-footer">
             Don't have an account? <Link to="/register">Sign up</Link>
           </div>
+        </div>
         </div>
       </div>
     </div>

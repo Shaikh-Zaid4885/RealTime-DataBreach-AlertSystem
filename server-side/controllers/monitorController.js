@@ -4,6 +4,7 @@ const breachAnalyzer = require('../services/breachAnalyzer');
 const Breach = require('../models/Breach');
 const Alert = require('../models/Alert');
 const encryptionService = require('../services/encryptionService');
+const notificationService = require('../services/notificationService');
 const logger = require('../utils/logger');
 
 exports.getMonitors = async (req, res, next) => {
@@ -53,6 +54,13 @@ exports.addMonitor = async (req, res, next) => {
 
     logger.info(`New monitor added: ${type} for user ${req.user.id}`);
 
+    // Await the scan so the frontend receives up-to-date data upon response
+    try {
+      await performScanLogic(monitor, req);
+    } catch (err) {
+      logger.error('Background scan failed', err);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Identifier added for monitoring',
@@ -67,6 +75,8 @@ exports.addMonitor = async (req, res, next) => {
         },
       },
     });
+
+
   } catch (error) {
     next(error);
   }
@@ -158,7 +168,10 @@ exports.deleteMonitor = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Monitor not found' });
     }
 
-    res.json({ success: true, message: 'Monitor removed successfully' });
+    // Delete all alerts associated with this monitor
+    await Alert.deleteMany({ identifierId: monitor._id });
+
+    res.json({ success: true, message: 'Monitor and associated alerts removed successfully' });
   } catch (error) {
     next(error);
   }
@@ -175,6 +188,21 @@ exports.scanMonitor = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Monitor not found' });
     }
 
+    const result = await performScanLogic(monitor, req);
+
+    res.json({
+      success: true,
+      message: `Scan complete. ${result.newBreaches} new breach(es) detected.`,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+async function performScanLogic(monitor, req) {
+  try {
+    const isInitialScan = !monitor.lastChecked;
     const decryptedValue = encryptionService.decrypt(monitor.value);
     let scanResult;
 
@@ -233,7 +261,7 @@ exports.scanMonitor = async (req, res, next) => {
             'Monitor your accounts for suspicious activity',
           ];
 
-          await Alert.create({
+          const newAlert = await Alert.create({
             userId: req.user.id,
             breachId: breach._id,
             identifierId: monitor._id,
@@ -249,12 +277,19 @@ exports.scanMonitor = async (req, res, next) => {
             })),
           });
 
+          // Send breach alert notification (email/SMS/push) only if it's not the initial scan
+          if (!isInitialScan) {
+            notificationService.sendBreachAlert(req.user, breach, analysis, newAlert).catch(err => {
+              logger.error(`Failed to send breach alert to ${req.user.email}: ${err.message}`);
+            });
+          }
+
           newBreachCount++;
 
           // Emit real-time alert via Socket.IO
           const io = req.app.get('io');
           if (io) {
-            io.to(req.user.id.toString()).emit('breach_alert', {
+            io.to(req.user.id.toString()).emit('new_alert', {
               type: 'new_breach',
               severity: analysis.severity,
               message: analysis.summary,
@@ -270,19 +305,17 @@ exports.scanMonitor = async (req, res, next) => {
     monitor.breachCount = (monitor.breachCount || 0) + newBreachCount;
     await monitor.save();
 
-    res.json({
-      success: true,
-      message: `Scan complete. ${newBreachCount} new breach(es) detected.`,
-      data: {
-        totalBreaches: scanResult.exposedBreaches ? scanResult.exposedBreaches.length : 0,
-        newBreaches: newBreachCount,
-        lastChecked: monitor.lastChecked,
-      },
-    });
+    return {
+      totalBreaches: scanResult.exposedBreaches ? scanResult.exposedBreaches.length : 0,
+      newBreaches: newBreachCount,
+      lastChecked: monitor.lastChecked,
+    };
   } catch (error) {
-    next(error);
+    logger.error('Error during scan execution:', error);
+    throw error;
   }
-};
+}
+
 
 exports.toggleMonitor = async (req, res, next) => {
   try {

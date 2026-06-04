@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Bell, LogOut, User } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useAlerts } from '../../hooks/useAlerts';
 
 export default function Header({ collapsed }) {
   const { user, logout } = useAuth();
-  const { unreadCount } = useAlerts();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -21,27 +19,9 @@ export default function Header({ collapsed }) {
 
   return (
     <header className={`header ${collapsed ? 'sidebar-collapsed' : ''}`}>
-      <div className="header-search">
-        <Search className="header-search-icon" size={16} />
-        <input
-          type="text"
-          className="header-search-input"
-          placeholder="Search breaches, alerts, monitors..."
-        />
-      </div>
+
 
       <div className="header-actions">
-        <button
-          className="header-action-btn"
-          onClick={() => navigate('/alerts')}
-          aria-label="Notifications"
-        >
-          <Bell size={20} />
-          {unreadCount > 0 && (
-            <span className="header-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
-          )}
-        </button>
-
         <div className="header-user" onClick={() => setShowDropdown(!showDropdown)}>
           <div className="header-avatar">{initials}</div>
           <div className="header-user-info">

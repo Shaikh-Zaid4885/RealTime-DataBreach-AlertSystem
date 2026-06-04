@@ -1,24 +1,42 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Bell, CheckCheck } from 'lucide-react';
 import AlertFilters from '../components/alerts/AlertFilters';
 import AlertFeed from '../components/alerts/AlertFeed';
 import Button from '../components/common/Button';
 import api from '../api/axios';
 
+
 export default function Alerts() {
   const [alerts, setAlerts] = useState(null);
   const [filter, setFilter] = useState('all');
+
+  const location = useLocation();
 
   useEffect(() => {
     document.title = 'Alerts — BreachGuard';
     fetchAlerts();
   }, []);
 
+  useEffect(() => {
+    if (alerts && location.hash) {
+      setTimeout(() => {
+        const id = location.hash.replace('#', '');
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('highlight-pulse');
+        }
+      }, 300);
+    }
+  }, [alerts, location.hash]);
   const fetchAlerts = async () => {
     try {
       const res = await api.get('/alerts');
       setAlerts(res.data?.data?.alerts);
-    } catch { /* uses mock */ }
+    } catch (err) {
+      console.error('Failed to fetch alerts:', err);
+    }
   };
 
   const handleMarkRead = async (id) => {
@@ -34,7 +52,6 @@ export default function Alerts() {
       fetchAlerts();
     } catch {}
   };
-
   const handleAction = async (alertId, index) => {
     try {
       await api.patch(`/alerts/${alertId}/action`, { recommendationIndex: index });
@@ -57,11 +74,11 @@ export default function Alerts() {
         </div>
         <Button variant="ghost" icon={CheckCheck} onClick={handleMarkAllRead}>Mark All Read</Button>
       </div>
-
+      
       <AlertFilters activeFilter={filter} onFilterChange={setFilter} />
 
       <div className="glass-card-flat">
-        <AlertFeed alerts={filteredAlerts} onMarkRead={handleMarkRead} onAction={handleAction} />
+         <AlertFeed alerts={filteredAlerts} onMarkRead={handleMarkRead} onAction={handleAction} />
       </div>
     </div>
   );
