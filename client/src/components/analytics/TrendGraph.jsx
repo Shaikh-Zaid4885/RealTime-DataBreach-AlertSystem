@@ -37,14 +37,11 @@ export default function TrendGraph({ data }) {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(76,111,255,0.08)" />
-          <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
+          <XAxis dataKey="year" stroke="var(--text-muted)" fontSize={12} />
           <YAxis stroke="var(--text-muted)" fontSize={12} />
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ fontSize: 12, color: 'var(--text-secondary)' }} />
-          <Line type="monotone" dataKey="critical" stroke="#FF3366" strokeWidth={2} dot={{ r: 3, fill: '#FF3366' }} name="Critical" />
-          <Line type="monotone" dataKey="high" stroke="#FF6B35" strokeWidth={2} dot={{ r: 3, fill: '#FF6B35' }} name="High" />
-          <Line type="monotone" dataKey="medium" stroke="#FFB800" strokeWidth={2} dot={{ r: 3, fill: '#FFB800' }} name="Medium" />
-          <Line type="monotone" dataKey="low" stroke="#00FF88" strokeWidth={2} dot={{ r: 3, fill: '#00FF88' }} name="Low" />
+          <Line type="monotone" dataKey="breaches" stroke="#FF3366" strokeWidth={2} dot={{ r: 4, fill: '#FF3366' }} name="Total Breaches" />
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -5,6 +5,7 @@ const { protect } = require('../middleware/auth');
 
 router.use(protect);
 
+router.get('/global', analyticsController.getGlobalAnalytics);
 router.get('/overview', analyticsController.getOverview);
 
 router.get('/data-types', analyticsController.getDataTypes);

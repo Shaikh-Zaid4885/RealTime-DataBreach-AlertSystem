@@ -37,7 +37,7 @@ export default function BreachChart({ data }) {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(76,111,255,0.08)" />
-          <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
+          <XAxis dataKey="year" stroke="var(--text-muted)" fontSize={12} />
           <YAxis stroke="var(--text-muted)" fontSize={12} />
           <Tooltip content={<CustomTooltip />} />
           <Area type="monotone" dataKey="breaches" stroke="#4C6FFF" strokeWidth={2} fill="url(#breachGrad)" name="Breaches" />

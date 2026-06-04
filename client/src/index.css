@@ -6,38 +6,38 @@
 
 /* ---- CSS Custom Properties ---- */
 :root {
-  --bg-primary: #0a0e27;
-  --bg-secondary: #131740;
-  --bg-tertiary: #1a1f4e;
-  --bg-surface: rgba(19, 23, 64, 0.7);
-  --bg-elevated: rgba(26, 31, 78, 0.6);
-  --bg-hover: rgba(76, 111, 255, 0.08);
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #111111;
+  --bg-surface: rgba(15, 15, 15, 0.7);
+  --bg-elevated: rgba(25, 25, 25, 0.6);
+  --bg-hover: rgba(255, 255, 255, 0.08);
   --accent-green: #00FF88;
   --accent-amber: #FFB800;
   --accent-red: #FF3366;
-  --accent-blue: #4C6FFF;
-  --accent-purple: #A855F7;
-  --accent-cyan: #06B6D4;
+  --accent-blue: #C0C0C0;
+  --accent-purple: #E0E0E0;
+  --accent-cyan: #A0A0A0;
   --accent-orange: #FF6B35;
-  --text-primary: #F0F2FF;
-  --text-secondary: #A0A8D0;
-  --text-muted: #6B7194;
-  --text-inverse: #0a0e27;
-  --border-primary: rgba(76, 111, 255, 0.15);
-  --border-secondary: rgba(160, 168, 208, 0.1);
-  --border-glow: rgba(76, 111, 255, 0.3);
+  --text-primary: #FFFFFF;
+  --text-secondary: #B0B0B0;
+  --text-muted: #808080;
+  --text-inverse: #000000;
+  --border-primary: rgba(255, 255, 255, 0.15);
+  --border-secondary: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(255, 255, 255, 0.2);
   --border-success: rgba(0, 255, 136, 0.3);
   --border-danger: rgba(255, 51, 102, 0.3);
   --border-warning: rgba(255, 184, 0, 0.3);
-  --glass-bg: rgba(19, 23, 64, 0.45);
-  --glass-border: rgba(76, 111, 255, 0.12);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --glass-blur: blur(20px);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.5);
-  --shadow-glow-blue: 0 0 20px rgba(76, 111, 255, 0.3);
+  --glass-bg: rgba(10, 10, 10, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --glass-blur: blur(24px);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.7);
+  --shadow-glow-blue: 0 0 20px rgba(192, 192, 192, 0.2);
   --shadow-glow-green: 0 0 20px rgba(0, 255, 136, 0.3);
   --shadow-glow-red: 0 0 20px rgba(255, 51, 102, 0.3);
   --shadow-glow-amber: 0 0 20px rgba(255, 184, 0, 0.3);
@@ -94,9 +94,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(76, 111, 255, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 70%);
+    radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(200, 200, 200, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(128, 128, 128, 0.02) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -661,6 +661,28 @@ button { cursor: pointer; border: none; background: none; }
 
 /* ---- Auth Pages ---- */
 .auth-page {
+  /* Legacy Theme Overrides for Auth Pages */
+  --bg-primary: #0a0e27;
+  --bg-secondary: #131740;
+  --bg-tertiary: #1a1f4e;
+  --bg-surface: rgba(19, 23, 64, 0.7);
+  --bg-elevated: rgba(26, 31, 78, 0.6);
+  --bg-hover: rgba(76, 111, 255, 0.08);
+  --accent-blue: #4C6FFF;
+  --accent-purple: #A855F7;
+  --accent-cyan: #06B6D4;
+  --text-primary: #F0F2FF;
+  --text-secondary: #A0A8D0;
+  --text-muted: #6B7194;
+  --text-inverse: #0a0e27;
+  --border-primary: rgba(76, 111, 255, 0.15);
+  --border-secondary: rgba(160, 168, 208, 0.1);
+  --border-glow: rgba(76, 111, 255, 0.3);
+  --glass-bg: rgba(19, 23, 64, 0.45);
+  --glass-border: rgba(76, 111, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-glow-blue: 0 0 20px rgba(76, 111, 255, 0.3);
+
   min-height: 100vh;
   background-color: var(--bg-default);
   position: relative;

@@ -206,6 +206,7 @@ class XposedOrNotService {
           logoPath: b.logo || b.LogoPath || '',
           isVerified: b.verified !== undefined ? b.verified : (b.IsVerified || false),
           isSensitive: b.sensitive !== undefined ? b.sensitive : (b.IsSensitive || false),
+          industry: b.industry || 'Unknown',
         }));
       }
 

@@ -3,7 +3,96 @@ const Alert = require('../models/Alert');
 const MonitoredIdentifier = require('../models/MonitoredIdentifier');
 const User = require('../models/User');
 const encryptionService = require('../services/encryptionService');
+const xposedOrNotService = require('../services/xposedOrNotService');
 const logger = require('../utils/logger');
+
+// Simple in-memory cache for global analytics (valid for 1 hour)
+let globalAnalyticsCache = null;
+let globalAnalyticsCacheTime = 0;
+
+exports.getGlobalAnalytics = async (req, res, next) => {
+  try {
+    const CACHE_TTL = 3600000; // 1 hour
+    if (globalAnalyticsCache && Date.now() - globalAnalyticsCacheTime < CACHE_TTL) {
+      return res.json({ success: true, data: globalAnalyticsCache });
+    }
+
+    const breaches = await xposedOrNotService.getAllBreaches();
+    
+    let totalRecords = 0;
+    let verifiedCount = 0;
+    const dataTypesCount = {};
+    const yearlyTrend = {};
+    const industryCount = {};
+
+    breaches.forEach(b => {
+      totalRecords += (b.pwnCount || 0);
+      if (b.isVerified) verifiedCount++;
+
+      // Aggregate data types
+      if (Array.isArray(b.dataClasses)) {
+        b.dataClasses.forEach(dt => {
+          dataTypesCount[dt] = (dataTypesCount[dt] || 0) + 1;
+        });
+      }
+
+      // Aggregate yearly trends
+      if (b.breachDate) {
+        const year = new Date(b.breachDate).getFullYear();
+        if (year > 2000 && year <= new Date().getFullYear()) {
+          if (!yearlyTrend[year]) yearlyTrend[year] = 0;
+          yearlyTrend[year]++;
+        }
+      }
+
+      // Aggregate industries
+      if (b.industry && b.industry !== 'Unknown' && b.industry.trim() !== '') {
+        const ind = b.industry.trim();
+        industryCount[ind] = (industryCount[ind] || 0) + 1;
+      }
+    });
+
+    // Format Data Types for Recharts PieChart
+    const topDataTypes = Object.keys(dataTypesCount)
+      .map(name => ({ name, value: dataTypesCount[name] }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10); // Top 10
+
+    const colors = ['#4C6FFF', '#FF3366', '#00FF88', '#FFB800', '#A855F7', '#06B6D4', '#FF6B35', '#EC4899', '#C0C0C0', '#ffffff'];
+    topDataTypes.forEach((dt, i) => dt.color = colors[i % colors.length]);
+
+    // Format Yearly Trends for Recharts AreaChart
+    const trendData = Object.keys(yearlyTrend)
+      .sort()
+      .map(year => ({
+        year,
+        breaches: yearlyTrend[year]
+      }));
+
+    // Format Industries for Recharts BarChart
+    const topIndustries = Object.keys(industryCount)
+      .map(name => ({ name, count: industryCount[name] }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    globalAnalyticsCache = {
+      summary: {
+        totalBreaches: breaches.length,
+        totalRecords,
+        verifiedBreaches: verifiedCount,
+        verificationRate: Math.round((verifiedCount / breaches.length) * 100) || 0
+      },
+      dataTypes: topDataTypes,
+      yearlyTrend: trendData,
+      industries: topIndustries
+    };
+    globalAnalyticsCacheTime = Date.now();
+
+    res.json({ success: true, data: globalAnalyticsCache });
+  } catch (error) {
+    next(error);
+  }
+};
 
 exports.getOverview = async (req, res, next) => {
   try {
