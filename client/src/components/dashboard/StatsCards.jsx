@@ -1,6 +1,8 @@
 import { Shield, AlertTriangle, Bell, Eye, TrendingUp, TrendingDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function StatsCards({ stats }) {
+  const navigate = useNavigate();
   const data = stats || [
     { label: 'Active Monitors', value: '0', icon: Eye, color: 'green' },
     { label: 'Total Breaches', value: '0', icon: AlertTriangle, color: 'red' },
@@ -13,7 +15,12 @@ export default function StatsCards({ stats }) {
       {data.map((stat, i) => {
         const Icon = stat.icon;
         return (
-          <div key={i} className={`stat-card ${stat.color}`}>
+          <div 
+            key={i} 
+            className={`stat-card ${stat.color}`}
+            onClick={() => stat.link && navigate(stat.link)}
+            style={{ cursor: stat.link ? 'pointer' : 'default', transition: 'transform 0.2s' }}
+          >
             <div className={`stat-icon ${stat.color}`}>
               <Icon size={24} />
             </div>

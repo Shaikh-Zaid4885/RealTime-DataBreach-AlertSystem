@@ -55,9 +55,9 @@ export default function Dashboard() {
   };
 
   const statsCards = stats ? [
-    { label: 'Active Monitors', value: String(stats.stats?.activeMonitors || 0), icon: Shield, color: 'green', change: `${stats.stats?.totalMonitors || 0} total`, positive: true },
+    { label: 'Active Monitors', value: String(stats.stats?.activeMonitors || 0), icon: Shield, color: 'green', change: `${stats.stats?.totalMonitors || 0} total`, positive: true, link: '/monitors' },
     { label: 'Total Breaches', value: String(stats.stats?.totalBreaches || 0), icon: Activity, color: 'red', change: `${stats.stats?.criticalBreaches || 0} critical`, positive: false },
-    { label: 'Unread Alerts', value: String(stats.stats?.unreadAlerts || 0), icon: Clock, color: 'amber', change: `${stats.stats?.totalAlerts || 0} total`, positive: false },
+    { label: 'Unread Alerts', value: String(stats.stats?.unreadAlerts || 0), icon: Clock, color: 'amber', change: `${stats.stats?.totalAlerts || 0} total`, positive: false, link: '/alerts' },
     { label: 'Risk Score', value: String(stats.stats?.riskScore || 0), icon: Shield, color: 'blue', change: stats.stats?.riskScore > 60 ? 'High risk' : 'Moderate', positive: stats.stats?.riskScore <= 60 },
   ] : undefined;
 
