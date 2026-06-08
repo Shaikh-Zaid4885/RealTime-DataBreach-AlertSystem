@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema(
   {
@@ -25,8 +26,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['individual', 'legal_professional', 'government', 'admin'],
-      default: 'individual',
+      enum: ['user', 'admin'],
+      default: 'user',
     },
     phone: {
       type: String,
@@ -69,6 +70,8 @@ const userSchema = new mongoose.Schema(
         expiresAt: Date,
       },
     ],
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
   },
   {
     timestamps: true,
@@ -89,6 +92,23 @@ userSchema.virtual('monitoredIdentifiers', {
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Generate and hash password token
+userSchema.methods.getResetPasswordToken = function() {
+  // Generate token
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // Set expire (10 minutes)
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 userSchema.index({ email: 1 });

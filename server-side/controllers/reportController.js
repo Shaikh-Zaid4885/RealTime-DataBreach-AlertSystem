@@ -59,17 +59,82 @@ exports.generateReport = async (req, res, next) => {
 
 exports.getLegalAdvisories = async (req, res, next) => {
   try {
+    const userId = req.user.id;
+    
+    // Fetch user's alerts and populate the breach details
+    const alerts = await Alert.find({ userId }).populate('breachId').lean();
+    
+    const activeThreatsMap = new Map();
+    const exposedDataTypes = new Set();
+    
+    for (const alert of alerts) {
+      if (alert.breachId && alert.status !== 'resolved') {
+        const breachIdStr = alert.breachId._id.toString();
+        
+        if (!activeThreatsMap.has(breachIdStr)) {
+          activeThreatsMap.set(breachIdStr, {
+            id: alert.breachId._id,
+            name: alert.breachId.name,
+            date: alert.breachId.breachDate,
+            severity: alert.severity,
+            dataClasses: alert.breachId.dataClasses || []
+          });
+        }
+        
+        if (alert.breachId.dataClasses) {
+          alert.breachId.dataClasses.forEach(dt => exposedDataTypes.add(dt.toLowerCase()));
+        }
+      }
+    }
+    
+    const activeThreats = Array.from(activeThreatsMap.values());
+    
+    // Sort threats by severity
+    const severityMap = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1, 'info': 0 };
+    activeThreats.sort((a, b) => (severityMap[b.severity] || 0) - (severityMap[a.severity] || 0));
+
+    // Generate dynamic security checklist based on exposed data
+    const checklist = [];
+    const types = Array.from(exposedDataTypes);
+    
+    if (types.some(t => t.includes('password'))) {
+      checklist.push({ task: 'Change passwords for affected accounts immediately', status: 'fail' });
+      checklist.push({ task: 'Enable Two-Factor Authentication (2FA)', status: 'fail' });
+    } else {
+      checklist.push({ task: 'Password security maintained', status: 'pass' });
+    }
+    
+    if (types.some(t => t.includes('credit card') || t.includes('bank') || t.includes('financial'))) {
+      checklist.push({ task: 'Monitor bank statements for fraudulent activity', status: 'fail' });
+      checklist.push({ task: 'Consider placing a freeze on your credit report', status: 'partial' });
+    } else {
+      checklist.push({ task: 'Financial data secure', status: 'pass' });
+    }
+    
+    if (types.some(t => t.includes('ssn') || t.includes('social security') || t.includes('aadhaar'))) {
+      checklist.push({ task: 'Setup identity theft monitoring', status: 'fail' });
+    } else {
+      checklist.push({ task: 'Identity documents secure', status: 'pass' });
+    }
+    
+    if (types.some(t => t.includes('email') || t.includes('phone'))) {
+      checklist.push({ task: 'Beware of targeted phishing emails or SMS (Smishing)', status: 'fail' });
+    }
+
+    if (activeThreats.length === 0) {
+      checklist.push({ task: 'No active breaches detected. Keep up the good security hygiene!', status: 'pass' });
+    }
+
     const advisories = [
       {
         id: 'gdpr-1',
         law: 'GDPR (EU)',
         title: 'General Data Protection Regulation',
         articles: [
-          { article: 'Article 33', title: 'Notification of breach to supervisory authority', description: 'Data breaches must be reported within 72 hours of becoming aware of the breach.' },
-          { article: 'Article 34', title: 'Communication of breach to data subject', description: 'If breach results in high risk to individuals, they must be notified without undue delay.' },
-          { article: 'Article 32', title: 'Security of processing', description: 'Implement appropriate technical and organizational measures to ensure security.' },
+          { article: 'Article 17', title: 'Right to Erasure (Right to be Forgotten)', description: 'You have the right to demand the breached company deletes all your remaining personal data.' },
+          { article: 'Article 15', title: 'Right of Access', description: 'You can demand the company provides a copy of exactly what data of yours they still hold.' },
         ],
-        penalties: 'Up to €20 million or 4% of annual global turnover',
+        penalties: 'Up to €20 million for companies who fail to protect your data',
         region: 'European Union',
       },
       {
@@ -77,50 +142,26 @@ exports.getLegalAdvisories = async (req, res, next) => {
         law: 'CCPA (California)',
         title: 'California Consumer Privacy Act',
         articles: [
-          { article: 'Section 1798.150', title: 'Private right of action for data breaches', description: 'Consumers can file lawsuits for unauthorized access of unencrypted personal information.' },
-          { article: 'Section 1798.100', title: 'Right to know', description: 'Consumers have the right to know what personal information is collected and how it is used.' },
+          { article: 'Section 1798.150', title: 'Private right of action', description: 'If your unencrypted data was stolen, you can legally sue the company for damages.' },
+          { article: 'Section 1798.105', title: 'Right to Delete', description: 'You have the right to request deletion of personal information collected from you.' },
         ],
         penalties: '$100-$750 per consumer per incident in statutory damages',
         region: 'California, USA',
-      },
-      {
-        id: 'hipaa-1',
-        law: 'HIPAA (USA)',
-        title: 'Health Insurance Portability and Accountability Act',
-        articles: [
-          { article: 'Breach Notification Rule', title: '45 CFR 164.400-414', description: 'Covered entities must notify affected individuals within 60 days of breach discovery.' },
-          { article: 'Security Rule', title: '45 CFR 164.302-318', description: 'Requires safeguards for electronic protected health information (ePHI).' },
-        ],
-        penalties: '$100 to $50,000 per violation, up to $1.5M annually per category',
-        region: 'United States',
-      },
-      {
-        id: 'it-act-2000',
-        law: 'IT Act 2000 (India)',
-        title: 'Information Technology Act, 2000',
-        articles: [
-          { article: 'Section 43A', title: 'Compensation for failure to protect data', description: 'Body corporate possessing sensitive personal data must implement reasonable security practices.' },
-          { article: 'Section 72A', title: 'Punishment for disclosure of information', description: 'Imprisonment up to 3 years and fine up to ₹5 lakh for unauthorized disclosure.' },
-          { article: 'Section 66', title: 'Computer related offences', description: 'Punishment for hacking, data theft, and unauthorized access to computer systems.' },
-        ],
-        penalties: 'Compensation as determined by adjudicating officer; criminal penalties including imprisonment',
-        region: 'India',
       },
       {
         id: 'dpdp-2023',
         law: 'DPDP Act 2023 (India)',
         title: 'Digital Personal Data Protection Act, 2023',
         articles: [
-          { article: 'Section 8(6)', title: 'Breach notification to Board and data principal', description: 'Data fiduciary must inform the Board and affected data principals about personal data breaches.' },
-          { article: 'Section 8(4)', title: 'Reasonable security safeguards', description: 'Data fiduciary must protect personal data by taking reasonable security safeguards.' },
-          { article: 'Section 4', title: 'Consent requirements', description: 'Personal data shall be processed only for lawful purposes with individual consent.' },
+          { article: 'Section 12', title: 'Right to Correction & Erasure', description: 'You have the right to demand the data fiduciary corrects or entirely deletes your personal data.' },
+          { article: 'Section 13', title: 'Right of Grievance Redressal', description: 'You can file a formal complaint with the Data Protection Board if the company fails to respond.' },
         ],
-        penalties: 'Up to ₹250 crore for failure to take security measures; up to ₹200 crore for breach notification failures',
+        penalties: 'Up to ₹250 crore penalty on companies for failing to protect your data',
         region: 'India',
       },
     ];
 
-    res.json({ success: true, data: { advisories } });
+    res.json({ success: true, data: { advisories, checklist, activeThreats } });
   } catch (error) {
     next(error);
   }

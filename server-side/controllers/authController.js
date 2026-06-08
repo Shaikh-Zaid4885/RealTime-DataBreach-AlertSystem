@@ -63,6 +63,7 @@ exports.register = async (req, res, next) => {
           email: user.email,
           role: user.role,
           organization: user.organization,
+          phone: user.phone,
         },
         ...tokens,
       },
@@ -104,6 +105,7 @@ exports.login = async (req, res, next) => {
           email: user.email,
           role: user.role,
           organization: user.organization,
+          phone: user.phone,
           alertPreferences: user.alertPreferences,
         },
         ...tokens,
@@ -155,7 +157,7 @@ exports.changePassword = async (req, res, next) => {
     const user = await User.findById(req.user.id).select('+password');
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+      return res.status(400).json({ success: false, message: 'Current password is incorrect' });
     }
 
     const salt = await bcrypt.genSalt(12);
@@ -186,5 +188,79 @@ exports.refreshToken = async (req, res, next) => {
     res.json({ success: true, data: tokens });
   } catch (error) {
     return res.status(401).json({ success: false, message: 'Invalid or expired refresh token' });
+  }
+};
+
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const crypto = require('crypto');
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'There is no user with that email' });
+    }
+
+    const resetToken = user.getResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    // In a real app, URL comes from config. Assuming localhost:3000 for frontend during dev
+    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+
+    const htmlContent = `
+      <h3>Password Reset Request</h3>
+      <p>You are receiving this email because you (or someone else) has requested the reset of a password.</p>
+      <p>Please click on the following link, or paste this into your browser to complete the process:</p>
+      <a href="${resetUrl}">${resetUrl}</a>
+      <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+    `;
+
+    try {
+      await notificationService.sendEmail(
+        user.email,
+        'Password Reset Token',
+        htmlContent,
+        `Password reset link: ${resetUrl}`
+      );
+      res.status(200).json({ success: true, message: 'Email sent' });
+    } catch (err) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+      return res.status(500).json({ success: false, message: 'Email could not be sent' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const crypto = require('crypto');
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(req.params.resettoken)
+      .digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired token' });
+    }
+
+    // Set new password
+    const salt = await bcrypt.genSalt(12);
+    user.password = await bcrypt.hash(req.body.password, salt);
+    
+    // Clear tokens
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    logger.info(`Password successfully reset via token for user: ${user.email}`);
+    res.status(200).json({ success: true, message: 'Password reset successful' });
+  } catch (error) {
+    next(error);
   }
 };

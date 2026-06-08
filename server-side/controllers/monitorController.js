@@ -28,9 +28,13 @@ exports.getMonitors = async (req, res, next) => {
 
 exports.addMonitor = async (req, res, next) => {
   try {
-    const { type, value } = req.body;
+    const { type, value, apiKey } = req.body;
     if (!type || !value) {
       return res.status(400).json({ success: false, message: 'Type and value are required' });
+    }
+
+    if (type === 'domain' && !apiKey) {
+      return res.status(400).json({ success: false, message: 'API Key is required for Domain monitoring' });
     }
 
     const identifier = value.toLowerCase().trim();
@@ -49,6 +53,7 @@ exports.addMonitor = async (req, res, next) => {
       type,
       value: encryptionService.encrypt(identifier),
       valueHash,
+      encryptedApiKey: apiKey && type === 'domain' ? encryptionService.encrypt(apiKey.trim()) : '',
       status: 'active',
     });
 
@@ -84,9 +89,13 @@ exports.addMonitor = async (req, res, next) => {
 
 exports.checkInstant = async (req, res, next) => {
   try {
-    const { type, value } = req.body;
+    const { type, value, apiKey } = req.body;
     if (!type || !value) {
       return res.status(400).json({ success: false, message: 'Type and value are required' });
+    }
+
+    if (type === 'domain' && !apiKey) {
+      return res.status(400).json({ success: false, message: 'API Key is required for Domain checking' });
     }
 
     const identifier = value.toLowerCase().trim();
@@ -94,6 +103,8 @@ exports.checkInstant = async (req, res, next) => {
 
     if (type === 'email') {
       scanResult = await xposedOrNotService.getBreachAnalytics(identifier);
+    } else if (type === 'domain') {
+      scanResult = await xposedOrNotService.checkDomain(identifier, apiKey.trim());
     }
 
     res.json({
@@ -138,7 +149,7 @@ exports.bulkUpload = async (req, res, next) => {
           continue;
         }
 
-        await MonitoredIdentifier.create({
+        const newMonitor = await MonitoredIdentifier.create({
           userId: req.user.id,
           type,
           value: encryptionService.encrypt(identifier.toLowerCase()),
@@ -146,6 +157,11 @@ exports.bulkUpload = async (req, res, next) => {
           status: 'active',
         });
         results.added++;
+        
+        // Dispatch background scan asynchronously so it doesn't block the API response
+        performScanLogic(newMonitor, req).catch(err => {
+          logger.error(`Background scan failed for bulk uploaded monitor ${newMonitor._id}:`, err);
+        });
       } catch (err) {
         results.errors.push(`Error processing ${item.identifier}: ${err.message}`);
       }
@@ -204,12 +220,23 @@ async function performScanLogic(monitor, req) {
   try {
     const isInitialScan = !monitor.lastChecked;
     const decryptedValue = encryptionService.decrypt(monitor.value);
+    
+    // Decrypt the custom API key if the user provided one
+    let decryptedApiKey = null;
+    if (monitor.type === 'domain' && monitor.encryptedApiKey) {
+      try {
+        decryptedApiKey = encryptionService.decrypt(monitor.encryptedApiKey);
+      } catch (err) {
+        logger.error('Failed to decrypt user API key for domain monitor');
+      }
+    }
+
     let scanResult;
 
     if (monitor.type === 'email') {
       scanResult = await xposedOrNotService.getBreachAnalytics(decryptedValue);
     } else if (monitor.type === 'domain') {
-      scanResult = await xposedOrNotService.checkDomain(decryptedValue);
+      scanResult = await xposedOrNotService.checkDomain(decryptedValue, decryptedApiKey);
     } else {
       scanResult = await xposedOrNotService.checkEmail(decryptedValue);
     }

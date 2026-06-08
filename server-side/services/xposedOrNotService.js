@@ -219,12 +219,14 @@ class XposedOrNotService {
   }
 
   // ─── 5. Domain Breach Check (requires API key) ─────────────
-  async checkDomain(domain) {
+  async checkDomain(domain, userApiKey = null) {
     try {
       await this._throttle();
       logger.info(`Checking domain: ${domain}`);
 
-      if (!this.apiKey) {
+      const activeKey = userApiKey || this.apiKey;
+
+      if (!activeKey) {
         logger.warn('Domain check skipped — no API key');
         return {
           domain, isBreached: false, breaches: [], totalExposed: 0,
@@ -232,28 +234,47 @@ class XposedOrNotService {
         };
       }
 
-      const response = await this.xon.checkDomain(domain);
+      // If a custom user API key is provided, instantiate a temporary client for this request
+      let clientToUse = this.xon;
+      if (userApiKey) {
+        clientToUse = new XposedOrNot(userApiKey);
+      }
+
+      const response = await clientToUse.checkDomain(domain);
 
       const result = {
         domain,
         isBreached: false,
-        breaches: [],
+        exposedBreaches: [],
         totalExposed: 0,
         checkedAt: new Date(),
       };
 
       if (response && response.breaches) {
         result.isBreached = true;
-        result.breaches = Array.isArray(response.breaches)
+        result.exposedBreaches = Array.isArray(response.breaches)
           ? response.breaches : [response.breaches];
-        result.totalExposed = result.breaches.reduce((sum, b) => sum + (b.exposedRecords || 0), 0);
+        
+        // Normalize the payload to match XON Breach structure
+        result.exposedBreaches = result.exposedBreaches.map(b => ({
+          breachId: b.breach || b.name || 'unknown',
+          name: b.breach || b.name || 'Unknown Breach',
+          domain: b.domain || domain,
+          breachDate: b.xposed_date || b.breachDate || null,
+          exposedRecords: parseInt(b.xposed_records || b.exposedRecords || 0, 10),
+          description: b.details || b.description || '',
+          dataClasses: (b.xposed_data || b.dataclasses || b.exposedData || '').split(';').filter(Boolean),
+          severity: 'high',
+        }));
+
+        result.totalExposed = result.exposedBreaches.reduce((sum, b) => sum + (b.exposedRecords || 0), 0);
       }
 
-      logger.info(`Domain: ${result.breaches.length} breaches for ${domain}`);
+      logger.info(`Domain: ${result.exposedBreaches.length} breaches for ${domain}`);
       return result;
     } catch (error) {
       if (error.message && (error.message.includes('404') || error.message.includes('Not found'))) {
-        return { domain, isBreached: false, breaches: [], totalExposed: 0, checkedAt: new Date() };
+        return { domain, isBreached: false, exposedBreaches: [], totalExposed: 0, checkedAt: new Date() };
       }
       if (error.message && error.message.includes('401')) {
         logger.error('Domain check: invalid API key');

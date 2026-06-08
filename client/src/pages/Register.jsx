@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import Button from '../components/common/Button';
 
 export default function Register() {
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'individual', organization: '', phone: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user', organization: '', phone: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -77,23 +77,7 @@ export default function Register() {
                 <input className="form-input" type="password" placeholder="Min 8 characters" value={form.password} onChange={(e) => update('password', e.target.value)} style={{ paddingLeft: 40 }} />
               </div>
             </div>
-            <div className="form-group">
-              <label className="form-label">Role</label>
-              <select className="form-select" value={form.role} onChange={(e) => update('role', e.target.value)}>
-                <option value="individual">Individual</option>
-                <option value="legal_professional">Legal Professional</option>
-                <option value="government">Government Organization</option>
-              </select>
-            </div>
-            {form.role !== 'individual' && (
-              <div className="form-group">
-                <label className="form-label">Organization</label>
-                <div style={{ position: 'relative' }}>
-                  <Building2 size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input className="form-input" placeholder="Organization name" value={form.organization} onChange={(e) => update('organization', e.target.value)} style={{ paddingLeft: 40 }} />
-                </div>
-              </div>
-            )}
+
             <Button type="submit" variant="primary" className="w-full" disabled={loading}>
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>

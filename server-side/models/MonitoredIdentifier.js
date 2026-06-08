@@ -29,6 +29,10 @@ const monitoredIdentifierSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    encryptedApiKey: {
+      type: String,
+      default: '',
+    },
     label: {
       type: String,
       trim: true,

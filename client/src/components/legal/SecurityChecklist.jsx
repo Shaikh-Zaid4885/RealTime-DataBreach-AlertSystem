@@ -1,28 +1,17 @@
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
-const defaultItems = [
-  { task: 'Breach notification procedures documented', status: 'pass' },
-  { task: 'Data encryption at rest implemented', status: 'pass' },
-  { task: 'Incident response plan updated', status: 'partial' },
-  { task: 'Regular security audits scheduled', status: 'pass' },
-  { task: 'Employee cybersecurity training completed', status: 'fail' },
-  { task: 'Data processing records maintained', status: 'pass' },
-  { task: 'Third-party vendor security assessments', status: 'partial' },
-  { task: 'Data retention policies enforced', status: 'pass' },
-];
-
 const statusIcons = { pass: CheckCircle, fail: XCircle, partial: AlertCircle };
-const statusLabels = { pass: 'Compliant', fail: 'Non-compliant', partial: 'Partial' };
+const statusLabels = { pass: 'Secure', fail: 'Action Required', partial: 'Warning' };
 
-export default function ComplianceStatus({ items }) {
-  const data = items || defaultItems;
+export default function SecurityChecklist({ items = [] }) {
+  const data = items.length > 0 ? items : [{ task: 'No active breaches detected. Keep up the good security hygiene!', status: 'pass' }];
   const passCount = data.filter((i) => i.status === 'pass').length;
   const percentage = Math.round((passCount / data.length) * 100);
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
-        <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Overall Compliance</span>
+        <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Security Posture Score</span>
         <span style={{ fontSize: 'var(--text-xl)', fontWeight: 800, fontFamily: 'var(--font-mono)', color: percentage >= 80 ? 'var(--accent-green)' : percentage >= 50 ? 'var(--accent-amber)' : 'var(--accent-red)' }}>
           {percentage}%
         </span>

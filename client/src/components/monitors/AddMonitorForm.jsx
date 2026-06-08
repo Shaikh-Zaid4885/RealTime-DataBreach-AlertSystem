@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Globe, Phone, Plus, Search, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react';
+import { Mail, Globe, Plus, Search, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react';
 import Button from '../common/Button';
 import api from '../../api/axios';
 
@@ -8,19 +8,20 @@ export default function AddMonitorForm({ onAdd }) {
   const navigate = useNavigate();
   const [type, setType] = useState('email');
   const [identifier, setIdentifier] = useState('');
+  const [apiKey, setApiKey] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [checkResult, setCheckResult] = useState(null);
 
-  const icons = { email: Mail, domain: Globe, phone: Phone };
-  const placeholders = { email: 'user@example.com', domain: 'example.com', phone: '+1234567890' };
+  const icons = { email: Mail, domain: Globe };
+  const placeholders = { email: 'user@example.com', domain: 'example.com' };
 
   const validate = () => {
     if (!identifier.trim()) return 'Please enter an identifier';
     if (type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) return 'Invalid email address';
     if (type === 'domain' && !/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(identifier)) return 'Invalid domain name';
-    if (type === 'phone' && !/^\+?[\d\s-]{8,}$/.test(identifier)) return 'Invalid phone number';
+    if (type === 'domain' && !apiKey.trim()) return 'XposedOrNot API Key is required for domains';
     return '';
   };
 
@@ -33,8 +34,9 @@ export default function AddMonitorForm({ onAdd }) {
     setError('');
     setCheckResult(null);
     try {
-      await onAdd?.({ type, value: identifier });
+      await onAdd?.({ type, value: identifier, apiKey: type === 'domain' ? apiKey : undefined });
       setIdentifier('');
+      setApiKey('');
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to add monitor');
     } finally {
@@ -51,7 +53,7 @@ export default function AddMonitorForm({ onAdd }) {
     setError('');
     setCheckResult(null);
     try {
-      const res = await api.post('/monitors/check', { type, value: identifier });
+      const res = await api.post('/monitors/check', { type, value: identifier, apiKey: type === 'domain' ? apiKey : undefined });
       setCheckResult(res.data.data);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Check failed');
@@ -66,7 +68,7 @@ export default function AddMonitorForm({ onAdd }) {
       <div className="form-group">
         <label className="form-label">Type</label>
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          {['email', 'domain', 'phone'].map((t) => {
+          {['email', 'domain'].map((t) => {
             const Icon = icons[t];
             return (
               <button key={t} type="button"
@@ -84,13 +86,35 @@ export default function AddMonitorForm({ onAdd }) {
       <div className="form-group">
         <label className="form-label">Identifier</label>
         <input
-          className={`form-input ${error ? 'error' : ''}`}
+          className={`form-input ${error && !apiKey ? 'error' : ''}`}
           placeholder={placeholders[type]}
           value={identifier}
           onChange={(e) => { setIdentifier(e.target.value); setError(''); setCheckResult(null); }}
         />
-        {error && <div className="form-error">{error}</div>}
       </div>
+
+      {type === 'domain' && (
+        <div className="form-group">
+          <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>XposedOrNot API Key</span>
+            <a href="https://xposedornot.com/domain" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Get API Key <ExternalLink size={12} />
+            </a>
+          </label>
+          <input
+            type="password"
+            className={`form-input ${error && error.includes('API') ? 'error' : ''}`}
+            placeholder="Paste your verified API key here"
+            value={apiKey}
+            onChange={(e) => { setApiKey(e.target.value); setError(''); setCheckResult(null); }}
+          />
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            Your key is heavily encrypted before being stored. It is only decrypted momentarily during scans.
+          </div>
+        </div>
+      )}
+
+      {error && <div className="form-error" style={{ marginBottom: '16px' }}>{error}</div>}
 
       {checkResult && (
         <div style={{ marginTop: 'var(--space-2)', padding: 'var(--space-3)', borderRadius: 'var(--radius-md)', background: checkResult.breachCount > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', border: `1px solid ${checkResult.breachCount > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}` }}>

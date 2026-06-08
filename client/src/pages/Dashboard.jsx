@@ -50,8 +50,41 @@ export default function Dashboard() {
     setBreaches(Array.isArray(breachesData) ? breachesData.slice(0, 5) : []);
   };
 
-  const handleBulkUpload = () => {
-    api.get('/analytics/overview').then(res => setStats(res.data?.data));
+  const [scanInProgress, setScanInProgress] = useState(false);
+
+  const handleBulkUpload = async (file) => {
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.csv') && !file.name.toLowerCase().endsWith('.txt')) {
+      alert('Error: Please upload a plain text .csv or .txt file. Excel files (.xlsx) are not supported.');
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      const identifiers = [];
+      for (const line of lines) {
+        const identifier = line.split(',')[0].trim();
+        if (identifier.length > 0 && identifier.length <= 150) {
+          identifiers.push({ type: 'email', identifier });
+        }
+      }
+      
+      if (identifiers.length === 0) {
+        alert('No valid emails were found in the file.');
+        return;
+      }
+
+      await api.post('/monitors/bulk', { identifiers });
+      setScanInProgress(true);
+      
+      // Refresh dashboard stats
+      api.get('/analytics/overview').then(r => setStats(r.data?.data));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to process bulk upload.');
+    }
   };
 
   const statsCards = stats ? [
@@ -95,6 +128,24 @@ export default function Dashboard() {
           {monitorTab === 'add' ? <AddMonitorForm onAdd={handleAddMonitor} /> : <BulkUpload onUpload={handleBulkUpload} />}
         </div>
       </div>
+
+      {scanInProgress && (
+        <div style={{
+          background: 'var(--accent-blue)', color: 'white', padding: 'var(--space-4)', 
+          borderRadius: 'var(--radius-lg)', marginBottom: 'var(--space-6)',
+          display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+        }}>
+          <Activity size={24} />
+          <div>
+            <h3 style={{ fontWeight: 600, fontSize: 'var(--text-base)', marginBottom: '4px' }}>Upload Successful! Scanning in Background...</h3>
+            <p style={{ fontSize: 'var(--text-sm)', opacity: 0.9 }}>
+              We are currently querying international databases for your uploaded emails. Due to strict API rate limits, this may take a few minutes. <strong>Check back shortly!</strong>
+            </p>
+          </div>
+        </div>
+      )}
 
       <StatsCards stats={statsCards} />
 

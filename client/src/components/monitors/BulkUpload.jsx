@@ -15,15 +15,20 @@ export default function BulkUpload({ onUpload }) {
     reader.onload = (e) => {
       const lines = e.target.result.split('\n').filter(Boolean).slice(0, 5);
       setPreview(lines.map((line) => {
-        const [type, identifier] = line.split(',').map((s) => s.trim());
-        return { type: type || 'email', identifier: identifier || type };
+        const identifier = line.split(',')[0].trim();
+        return { type: 'email', identifier };
       }));
     };
     reader.readAsText(f);
   };
 
-  const handleSubmit = () => {
-    if (file && onUpload) onUpload(file);
+  const handleSubmit = async () => {
+    if (file && onUpload) {
+      await onUpload(file);
+      setFile(null);
+      setPreview([]);
+      if (inputRef.current) inputRef.current.value = '';
+    }
   };
 
   return (
@@ -41,7 +46,7 @@ export default function BulkUpload({ onUpload }) {
         <div className="upload-zone-text" style={{ marginTop: 'var(--space-3)', fontWeight: 600 }}>
           {file ? file.name : 'Drop CSV file here or click to browse'}
         </div>
-        <div className="upload-zone-hint" style={{ marginTop: 'var(--space-2)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Format: type,identifier (one per line)</div>
+        <div className="upload-zone-hint" style={{ marginTop: 'var(--space-2)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Format: One email address per line (Max 100)</div>
         <input ref={inputRef} type="file" accept=".csv,.txt" hidden onChange={(e) => handleFile(e.target.files[0])} />
       </div>
 

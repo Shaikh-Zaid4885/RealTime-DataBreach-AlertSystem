@@ -6,15 +6,17 @@ import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Monitors from './pages/Monitors';
 import AllBreaches from './pages/AllBreaches';
 import BreachDetails from './pages/BreachDetails';
 import Alerts from './pages/Alerts';
 import Analytics from './pages/Analytics';
-import OrgDashboard from './pages/OrgDashboard';
 import LegalAdvisory from './pages/LegalAdvisory';
 import Settings from './pages/Settings';
+import AdminDashboard from './pages/AdminDashboard';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -25,6 +27,8 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="monitors" element={<Monitors />} />
@@ -32,9 +36,9 @@ function App() {
               <Route path="breaches/:id" element={<BreachDetails />} />
               <Route path="alerts" element={<Alerts />} />
               <Route path="analytics" element={<Analytics />} />
-              <Route path="organization" element={<OrgDashboard />} />
               <Route path="legal" element={<LegalAdvisory />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="admin" element={<AdminDashboard />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
 import {
   LayoutDashboard, Monitor, Bell, BarChart3, Building2, Scale,
   Settings, Shield, ChevronLeft, ChevronRight, Database
@@ -8,15 +9,21 @@ import {
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/monitors', icon: Monitor, label: 'Monitors' },
-  { path: '/all-breaches', icon: Database, label: 'All Breaches' },
   { path: '/alerts', icon: Bell, label: 'Alerts' },
-  { path: '/analytics', icon: BarChart3, label: 'Analytics' },
-  { path: '/organization', icon: Building2, label: 'Organization' },
   { path: '/legal', icon: Scale, label: 'Legal Advisory' },
+  { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+  { path: '/all-breaches', icon: Database, label: 'All Breaches' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
+  const { user } = useContext(AuthContext);
+
+  const finalNavItems = [...navItems];
+  if (user?.role === 'admin') {
+    finalNavItems.unshift({ path: '/admin', icon: Shield, label: 'Admin Panel' });
+  }
+
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-logo">
@@ -27,7 +34,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map((item) => (
+        {finalNavItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}

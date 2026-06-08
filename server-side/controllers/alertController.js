@@ -121,3 +121,22 @@ exports.deleteAlert = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.resolveBreach = async (req, res, next) => {
+  try {
+    const { breachId } = req.params;
+    
+    // Find all alerts for this breach and this user, and mark them as resolved
+    const result = await Alert.updateMany(
+      { userId: req.user.id, breachId },
+      { status: 'resolved', resolvedAt: new Date() }
+    );
+
+    res.json({
+      success: true,
+      message: `${result.modifiedCount} alerts marked as resolved for this breach.`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
