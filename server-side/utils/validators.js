@@ -10,7 +10,7 @@ const schemas = {
       .messages({
         'string.min': 'Password must be at least 8 characters',
       }),
-    role: Joi.string().valid('individual', 'legal_professional', 'government').optional(),
+    role: Joi.string().valid('user', 'admin').optional(),
     phone: Joi.string().trim().optional().allow(''),
     organization: Joi.string().trim().max(100).optional().allow(''),
   }),
