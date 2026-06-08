@@ -89,14 +89,13 @@ const logger = winston.createLogger({
   ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: consoleFormat,
-      level: 'debug',
-    })
-  );
-}
+// Always log to console so platform logs (Render, Docker) can capture them
+logger.add(
+  new winston.transports.Console({
+    format: consoleFormat,
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  })
+);
 
 const securityLogger = winston.createLogger({
   level: 'info',
