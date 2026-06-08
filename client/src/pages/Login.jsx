@@ -61,7 +61,7 @@ export default function Login() {
               <label className="form-label">Email</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input className="form-input" type="email" placeholder="admin@breachalert.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ paddingLeft: 40 }} />
+                <input className="form-input" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ paddingLeft: 40 }} />
               </div>
             </div>
             <div className="form-group">
