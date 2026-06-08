@@ -11,37 +11,43 @@ export default function AlertItem({ alert, onMarkRead, onAction }) {
       <div className={`alert-icon-wrapper ${alert.severity}`}>
         <Icon size={18} />
       </div>
-      <div className="alert-content">
-        <div className="alert-title">{alert.title || alert.message?.slice(0, 60)}</div>
-        <div className="alert-message">{alert.message}</div>
+      <div className="alert-content" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="alert-title" style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)' }}>
+          {alert.title || alert.message?.slice(0, 60)}
+        </div>
+        <div className="alert-message" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          {alert.message}
+        </div>
+
+        <div className="alert-time" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: 'var(--space-2)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>{formatTimeAgo(alert.createdAt)}</span>
+          {alert.monitorValue && (
+            <>
+              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--border-secondary)' }} />
+              <span>Related to: <strong style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{alert.monitorValue}</strong></span>
+            </>
+          )}
+        </div>
 
         {alert.recommendations && alert.recommendations.length > 0 && (
-          <div style={{ marginTop: 'var(--space-3)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-            {alert.recommendations.slice(0, 3).map((rec, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-xs)' }}>
-                <button
-                  onClick={() => onAction?.(alert._id || alert.id, i)}
-                  style={{
-                    width: 18, height: 18, borderRadius: 'var(--radius-full)', border: '1px solid',
-                    borderColor: rec.completed ? 'var(--accent-green)' : 'var(--border-secondary)',
-                    background: rec.completed ? 'rgba(0,255,136,0.15)' : 'transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer',
-                  }}
-                >
-                  {rec.completed && <CheckCircle size={12} style={{ color: 'var(--accent-green)' }} />}
-                </button>
-                <span style={{ color: rec.completed ? 'var(--text-muted)' : 'var(--text-secondary)', textDecoration: rec.completed ? 'line-through' : 'none' }}>
-                  {rec.action}
-                </span>
-              </div>
-            ))}
+          <div style={{ marginTop: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--bg-tertiary)', padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--bg-modifier-border)' }}>
+            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Recommended Actions</div>
+            <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px', listStyleType: 'disc' }}>
+              {alert.recommendations.slice(0, 3).map((rec, i) => (
+                <li key={i} style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)', display: 'list-item' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontWeight: 500 }}>{rec.action}</span>
+                    {rec.description && rec.description !== rec.action && (
+                      <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', lineHeight: 1.4 }}>
+                        {rec.description}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
-
-        <div className="alert-time">
-          {formatTimeAgo(alert.createdAt)}
-          {alert.monitorValue && <span style={{ marginLeft: '8px', color: 'var(--text-muted)' }}>· Related to: {alert.monitorValue}</span>}
-        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-2)' }}>

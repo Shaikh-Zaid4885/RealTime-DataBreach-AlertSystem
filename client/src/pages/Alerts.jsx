@@ -62,7 +62,7 @@ export default function Alerts() {
   const filteredAlerts = alerts?.filter((a) => {
     if (filter === 'all') return true;
     if (filter === 'unread') return a.status === 'unread';
-    return a.severity === filter;
+    return a.severity?.toLowerCase() === filter.toLowerCase();
   });
 
   return (
