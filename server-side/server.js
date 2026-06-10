@@ -103,22 +103,27 @@ const startServer = async () => {
     // Connect to MongoDB
     await connectDB();
 
-    // Create default admin user
+    // Create default admin user if specified in .env
     const User = require('./models/User');
     const bcrypt = require('bcryptjs');
-    const adminExists = await User.findOne({ email: 'admin@breachalert.com' });
-    if (!adminExists) {
-      const salt = await bcrypt.genSalt(12);
-      const hashedPassword = await bcrypt.hash('Admin@123', salt);
-      await User.create({
-        name: 'System Admin',
-        email: 'admin@breachalert.com',
-        password: hashedPassword,
-        role: 'admin',
-        organization: 'Breach Alert System',
-        alertPreferences: { email: true, sms: false, push: true, frequency: 'instant' },
-      });
-      logger.info('Default admin user created (admin@breachalert.com / Admin@123)');
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD;
+
+    if (adminEmail && adminPassword) {
+      const adminExists = await User.findOne({ email: adminEmail });
+      if (!adminExists) {
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(adminPassword, salt);
+        await User.create({
+          name: 'System Admin',
+          email: adminEmail,
+          password: hashedPassword,
+          role: 'admin',
+          organization: 'Breach Alert System',
+          alertPreferences: { email: true, sms: false, push: true, frequency: 'instant' },
+        });
+        logger.info(`Admin user created from environment variables (${adminEmail})`);
+      }
     }
 
     // Start cron scheduler
