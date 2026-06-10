@@ -29,7 +29,7 @@ class NotificationService {
         this.emailTransporter = null;
       }
     } catch (error) {
-      logger.error('Failed to initialize email transporter:', error.message);
+      logger.error(`Failed to initialize email transporter: ${error.message}`);
       this.emailTransporter = null;
     }
   }
@@ -59,7 +59,7 @@ class NotificationService {
         preview: { to, subject, bodyPreview: textContent ? textContent.substring(0, 200) : '' },
       };
     } catch (error) {
-      logger.error(`Failed to send email to ${to}:`, error.message);
+      logger.error(`Failed to send email to ${to}: ${error.message}`);
       return { success: false, error: error.message };
     }
   }
