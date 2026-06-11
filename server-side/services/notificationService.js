@@ -1,53 +1,71 @@
-const nodemailer = require('nodemailer');
+const { google } = require('googleapis');
 const config = require('../config/config');
 const logger = require('../utils/logger');
 
 class NotificationService {
   constructor() {
-    this.emailTransporter = null;
+    this.gmailClient = null;
     this._initEmailTransporter();
   }
 
   _initEmailTransporter() {
     try {
-      if (config.smtp.user && config.smtp.pass && !config.smtp.user.includes('your_email')) {
-        this.emailTransporter = nodemailer.createTransport({
-          host: config.smtp.host,
-          port: config.smtp.port,
-          secure: config.smtp.secure,
-          auth: {
-            user: config.smtp.user,
-            pass: config.smtp.pass,
-          },
-          tls: {
-            rejectUnauthorized: false,
-          },
-        });
-        logger.info('Email transporter initialized successfully');
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+      const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+
+      if (clientId && clientSecret && refreshToken) {
+        const oAuth2Client = new google.auth.OAuth2(
+          clientId,
+          clientSecret,
+          'https://developers.google.com/oauthplayground'
+        );
+
+        oAuth2Client.setCredentials({ refresh_token: refreshToken });
+        this.gmailClient = google.gmail({ version: 'v1', auth: oAuth2Client });
+        logger.info('Gmail API client initialized successfully');
       } else {
-        logger.warn('Email credentials not configured. Email notifications will be simulated.');
-        this.emailTransporter = null;
+        logger.warn('Google OAuth credentials not configured. Email notifications will be simulated.');
+        this.gmailClient = null;
       }
     } catch (error) {
-      logger.error(`Failed to initialize email transporter: ${error.message}`);
-      this.emailTransporter = null;
+      logger.error(`Failed to initialize Gmail API client: ${error.message}`);
+      this.gmailClient = null;
     }
   }
 
   async sendEmail(to, subject, htmlContent, textContent) {
     try {
-      const mailOptions = {
-        from: `"${config.smtp.fromName}" <${config.smtp.from}>`,
-        to,
-        subject,
-        html: htmlContent,
-        text: textContent || htmlContent.replace(/<[^>]*>/g, ''),
-      };
+      if (this.gmailClient) {
+        // Construct standard RFC 2822 email message
+        const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
+        const messageParts = [
+          `From: Breach Alert System <${process.env.SMTP_USER || 'zaidshaikh26166@gmail.com'}>`,
+          `To: ${to}`,
+          'Content-Type: text/html; charset=utf-8',
+          'MIME-Version: 1.0',
+          `Subject: ${utf8Subject}`,
+          '',
+          htmlContent,
+        ];
+        const message = messageParts.join('\n');
 
-      if (this.emailTransporter) {
-        const info = await this.emailTransporter.sendMail(mailOptions);
-        logger.info(`Email sent successfully to ${to}: ${info.messageId}`);
-        return { success: true, messageId: info.messageId, method: 'smtp' };
+        // The body needs to be base64url encoded for the Gmail API
+        const encodedMessage = Buffer.from(message)
+          .toString('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+
+        const response = await this.gmailClient.users.messages.send({
+          userId: 'me',
+          requestBody: {
+            raw: encodedMessage,
+          },
+        });
+
+        logger.info(`Email sent successfully to ${to} via Gmail API: ${response.data.id}`);
+        return { success: true, messageId: response.data.id, method: 'gmail-api' };
       }
 
       // Simulated email for development
