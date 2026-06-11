@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
-import { Users, Shield, Bell, AlertTriangle, Trash2, ChevronDown, ChevronRight, Server, Search } from 'lucide-react';
+import { Users, Shield, Bell, AlertTriangle, Trash2, ChevronDown, ChevronRight, Search } from 'lucide-react';
 import api from '../api/axios';
 
 export default function AdminDashboard() {
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
       const res = await api.get(`/admin/users/${userId}/details`);
       setUserDetails(res.data?.data || null);
     } catch (err) {
-      alert('Failed to fetch user details');
+      setError(err.response?.data?.error || 'Failed to fetch user details');
       setExpandedUserId(null);
     } finally {
       setDetailsLoading(false);
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
       await api.put(`/admin/users/${userId}/role`, { role: newRole });
       setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update role');
+      setError(err.response?.data?.error || 'Failed to update role');
     }
   };
 
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
       const statsRes = await api.get('/admin/stats');
       setStats(statsRes.data?.data || null);
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete user');
+      setError(err.response?.data?.error || 'Failed to delete user');
     }
   };
 
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
       // Also update aggregate stats roughly
       setUsers(users.map(u => u._id === expandedUserId ? { ...u, monitorCount: Math.max(0, u.monitorCount - 1) } : u));
     } catch (err) {
-      alert('Failed to delete monitor');
+      setError(err.response?.data?.error || 'Failed to delete monitor');
     }
   };
 
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
         alerts: userDetails.alerts.filter(a => a._id !== alertId)
       });
     } catch (err) {
-      alert('Failed to delete alert');
+      setError(err.response?.data?.error || 'Failed to delete alert');
     }
   };
 

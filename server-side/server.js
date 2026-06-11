@@ -13,6 +13,7 @@ const connectDB = require('./config/db');
 const config = require('./config/config');
 const logger = require('./utils/logger');
 const { errorHandler } = require('./middleware/errorHandler');
+const { globalLimiter } = require('./middleware/rateLimiter');
 const { setupSocket } = require('./websocket/socketHandler');
 const schedulerService = require('./services/schedulerService');
 
@@ -46,6 +47,7 @@ app.set('io', io);
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
+app.use(globalLimiter);
 app.use(cors({
   origin: config.corsOrigins,
   credentials: true,
@@ -56,8 +58,8 @@ app.use(mongoSanitize());
 app.use(hpp());
 
 // Body parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '256kb' }));
+app.use(express.urlencoded({ extended: true, limit: '256kb' }));
 
 // Compression
 app.use(compression());
@@ -127,7 +129,8 @@ const startServer = async () => {
     }
 
     // Start cron scheduler
-    schedulerService.startAll(io);
+    schedulerService.initializeJobs(io);
+    schedulerService.startAll();
 
     const PORT = config.port;
     server.listen(PORT, () => {

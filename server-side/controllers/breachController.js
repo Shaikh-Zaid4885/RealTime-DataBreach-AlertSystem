@@ -14,10 +14,12 @@ exports.getBreaches = async (req, res, next) => {
     if (severity) filter.severity = severity;
     if (source) filter.source = source;
     if (search) {
+      const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+      const safeSearch = escapeRegex(search);
       filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { title: { $regex: search, $options: 'i' } },
-        { domain: { $regex: search, $options: 'i' } },
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { title: { $regex: safeSearch, $options: 'i' } },
+        { domain: { $regex: safeSearch, $options: 'i' } },
       ];
     }
 
@@ -85,12 +87,15 @@ exports.searchBreaches = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Search query must be at least 2 characters' });
     }
 
+    const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    const safeQ = escapeRegex(q);
+
     const breaches = await Breach.find({
       $or: [
-        { name: { $regex: q, $options: 'i' } },
-        { title: { $regex: q, $options: 'i' } },
-        { domain: { $regex: q, $options: 'i' } },
-        { 'dataClasses': { $regex: q, $options: 'i' } },
+        { name: { $regex: safeQ, $options: 'i' } },
+        { title: { $regex: safeQ, $options: 'i' } },
+        { domain: { $regex: safeQ, $options: 'i' } },
+        { 'dataClasses': { $regex: safeQ, $options: 'i' } },
       ],
     }).sort('-severityScore').limit(50);
 

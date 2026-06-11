@@ -39,7 +39,7 @@ exports.register = async (req, res, next) => {
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role: role || 'individual',
+      role: 'user',
       organization: organization || '',
       phone: phone || '',
       alertPreferences: { email: true, sms: false, push: true, frequency: 'instant' },
@@ -154,6 +154,10 @@ exports.changePassword = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Both current and new password required' });
     }
 
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 8 characters long' });
+    }
+
     const user = await User.findById(req.user.id).select('+password');
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
@@ -196,14 +200,15 @@ exports.forgotPassword = async (req, res, next) => {
     const crypto = require('crypto');
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      return res.status(404).json({ success: false, message: 'There is no user with that email' });
+      // Return generic response to prevent email enumeration
+      return res.status(200).json({ success: true, message: 'If an account with that email exists, a password reset link has been sent.' });
     }
 
     const resetToken = user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
 
-    // In a real app, URL comes from config. Assuming localhost:3000 for frontend during dev
-    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
     const htmlContent = `
       <h3>Password Reset Request</h3>
@@ -247,6 +252,11 @@ exports.resetPassword = async (req, res, next) => {
 
     if (!user) {
       return res.status(400).json({ success: false, message: 'Invalid or expired token' });
+    }
+
+    // Validate new password
+    if (!req.body.password || req.body.password.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long' });
     }
 
     // Set new password

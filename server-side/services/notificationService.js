@@ -40,7 +40,7 @@ class NotificationService {
         // Construct standard RFC 2822 email message
         const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
         const messageParts = [
-          `From: Breach Alert System <${process.env.SMTP_USER || 'zaidshaikh26166@gmail.com'}>`,
+          `From: Breach Alert System <zaidshaikh26166@gmail.com>`,
           `To: ${to}`,
           'Content-Type: text/html; charset=utf-8',
           'MIME-Version: 1.0',

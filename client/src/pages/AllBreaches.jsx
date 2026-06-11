@@ -122,7 +122,7 @@ export default function AllBreaches() {
                         <td colSpan={4} style={{ padding: 'var(--space-4)', paddingTop: 0 }}>
                           <div style={{ padding: 'var(--space-4)', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--bg-modifier-border)' }}>
                             <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 700, marginBottom: 'var(--space-2)' }}>Breach Description</h4>
-                            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 'var(--space-4)' }} dangerouslySetInnerHTML={{ __html: breach.description || 'No description available.' }} />
+                            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 'var(--space-4)' }}>{breach.description?.replace(/<[^>]*>/g, '') || 'No description available.'}</p>
                             
                             {breach.dataClasses && breach.dataClasses.length > 0 && (
                               <>

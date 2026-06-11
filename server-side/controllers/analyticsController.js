@@ -5,6 +5,7 @@ const User = require('../models/User');
 const encryptionService = require('../services/encryptionService');
 const xposedOrNotService = require('../services/xposedOrNotService');
 const logger = require('../utils/logger');
+const mongoose = require('mongoose');
 
 // Simple in-memory cache for global analytics (valid for 1 hour)
 let globalAnalyticsCache = null;
@@ -131,7 +132,7 @@ exports.getOverview = async (req, res, next) => {
     });
 
     const severityDistribution = await Alert.aggregate([
-      { $match: { userId: req.user._id || req.user.id } },
+      { $match: { userId: new mongoose.Types.ObjectId(req.user._id || req.user.id) } },
       { $group: { _id: '$severity', count: { $sum: 1 } } },
     ]);
 

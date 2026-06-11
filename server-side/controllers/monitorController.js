@@ -158,7 +158,6 @@ exports.bulkUpload = async (req, res, next) => {
         });
         results.added++;
         
-        // Dispatch background scan asynchronously so it doesn't block the API response
         performScanLogic(newMonitor, req).catch(err => {
           logger.error(`Background scan failed for bulk uploaded monitor ${newMonitor._id}:`, err);
         });

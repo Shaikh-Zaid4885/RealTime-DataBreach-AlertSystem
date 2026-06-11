@@ -32,10 +32,11 @@ export default function ResetPassword() {
     setLoading(true);
     setError('');
 
+    let timeoutId;
     try {
       await api.put(`/auth/resetpassword/${token}`, { password });
       setSuccess(true);
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (err) {
@@ -43,6 +44,8 @@ export default function ResetPassword() {
     } finally {
       setLoading(false);
     }
+
+    return () => clearTimeout(timeoutId);
   };
 
   return (

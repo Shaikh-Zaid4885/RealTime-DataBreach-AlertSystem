@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const logger = require('../utils/logger');
+const MonitoredIdentifier = require('../models/MonitoredIdentifier');
 
 const setupSocket = (io) => {
   // Authentication middleware for Socket.IO
@@ -35,9 +36,18 @@ const setupSocket = (io) => {
     });
 
     // Handle subscription to specific monitor updates
-    socket.on('subscribe_monitor', (monitorId) => {
-      socket.join(`monitor:${monitorId}`);
-      logger.info(`User ${userId} subscribed to monitor ${monitorId}`);
+    socket.on('subscribe_monitor', async (monitorId) => {
+      try {
+        const monitor = await MonitoredIdentifier.findOne({ _id: monitorId, userId });
+        if (monitor) {
+          socket.join(`monitor:${monitorId}`);
+          logger.info(`User ${userId} subscribed to monitor ${monitorId}`);
+        } else {
+          logger.warn(`User ${userId} attempted to subscribe to unauthorized monitor ${monitorId}`);
+        }
+      } catch (err) {
+        logger.error(`Error subscribing to monitor ${monitorId}: ${err.message}`);
+      }
     });
 
     // Handle unsubscription

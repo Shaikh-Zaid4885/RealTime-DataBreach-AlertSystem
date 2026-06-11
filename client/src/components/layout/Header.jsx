@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -7,6 +7,19 @@ export default function Header({ collapsed }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   const handleLogout = () => {
     logout();
@@ -21,7 +34,7 @@ export default function Header({ collapsed }) {
     <header className={`header ${collapsed ? 'sidebar-collapsed' : ''}`}>
 
 
-      <div className="header-actions">
+      <div className="header-actions" ref={dropdownRef}>
         <div className="header-user" onClick={() => setShowDropdown(!showDropdown)}>
           <div className="header-avatar">{initials}</div>
           <div className="header-user-info">

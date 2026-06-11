@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../utils/constants';
+import { useAuth } from '../hooks/useAuth';
 
 export const SocketContext = createContext(null);
 
@@ -10,8 +11,10 @@ export function SocketProvider({ children }) {
   const socketRef = useRef(null);
   const listenersRef = useRef(new Map());
 
+  const { token } = useAuth();
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    if (!token) return;
     const socket = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
@@ -25,12 +28,10 @@ export function SocketProvider({ children }) {
 
     socket.on('connect', () => {
       setConnected(true);
-      console.log('[Socket] Connected:', socket.id);
     });
 
     socket.on('disconnect', (reason) => {
       setConnected(false);
-      console.log('[Socket] Disconnected:', reason);
     });
 
     socket.on('new_alert', (alert) => {
@@ -39,18 +40,16 @@ export function SocketProvider({ children }) {
     });
 
     socket.on('breach_update', (data) => {
-      console.log('[Socket] Breach update:', data);
     });
 
     socket.on('connect_error', (err) => {
-      console.log('[Socket] Connection error (backend may not be running):', err.message);
     });
 
     return () => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, []);
+  }, [token]);
 
   const subscribe = useCallback((id, callback) => {
     listenersRef.current.set(id, callback);

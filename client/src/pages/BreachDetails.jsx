@@ -1,33 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Globe, Calendar, Users, Database, Shield, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Globe, Calendar, Users, Database, Shield, AlertTriangle } from 'lucide-react';
 import SeverityBadge from '../components/breaches/SeverityBadge';
 import Button from '../components/common/Button';
 import api from '../api/axios';
 
-const mockBreach = {
-  _id: '1', name: 'LinkedIn', domain: 'linkedin.com', severity: 'critical', severityScore: 85,
-  breachDate: '2024-11-15', pwnCount: 164611595,
-  description: 'In November 2024, LinkedIn suffered a massive data breach. The incident exposed user credentials including email addresses, passwords, and personal profile information. The breach affected approximately 164 million users worldwide.',
-  dataClasses: ['Email addresses', 'Passwords', 'Names', 'Phone numbers', 'Job titles', 'Geographic locations'],
-  source: 'xposedornot', isVerified: true,
-  nlpAnalysis: {
-    keywords: ['password', 'credential', 'personal', 'email'],
-    riskFactors: ['Login credentials were exposed. Immediate password changes required.', 'Personal contact information was exposed. Watch for phishing attempts.', 'Large-scale breach affecting 164.6M+ records. Data likely widely distributed.'],
-    summary: 'LinkedIn experienced a critical data breach on November 15, 2024. Approximately 164.6 million records were exposed.',
-  },
-  legalReferences: [
-    { law: 'GDPR', section: 'Article 33', description: 'Must notify supervisory authority within 72 hours' },
-    { law: 'DPDP Act 2023', section: 'Section 8(6)', description: 'Must notify Data Protection Board and affected individuals' },
-    { law: 'CCPA', section: 'Section 1798.150', description: 'Consumers can file lawsuits for unauthorized access of unencrypted PII' },
-  ],
-};
 
 export default function BreachDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [breach, setBreach] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     document.title = 'Breach Details — BreachGuard';
@@ -35,14 +19,21 @@ export default function BreachDetails() {
       try {
         const res = await api.get(`/breaches/${id}`);
         setBreach(res.data?.data?.breach);
-      } catch { setBreach(mockBreach); }
+      } catch (err) { 
+        setError(err.response?.data?.message || 'Failed to fetch breach details');
+      }
       finally { setLoading(false); }
     };
     fetchBreach();
   }, [id]);
 
-  const data = breach || mockBreach;
   const formatCount = (n) => n >= 1000000 ? `${(n / 1000000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
+
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}><div style={{ color: 'var(--text-muted)' }}>Loading Breach Details...</div></div>;
+  if (error) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}><div style={{ color: 'var(--accent-red)' }}>{error}</div></div>;
+  if (!breach) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}><div style={{ color: 'var(--text-muted)' }}>Breach not found.</div></div>;
+
+  const data = breach;
 
   return (
     <div>

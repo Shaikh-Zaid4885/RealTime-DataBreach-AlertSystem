@@ -24,11 +24,11 @@ exports.generateReport = async (req, res, next) => {
       type,
       summary: {
         totalAlerts: alerts.length,
-        criticalAlerts: alerts.filter((a) => a.severity === 'critical').length,
-        highAlerts: alerts.filter((a) => a.severity === 'high').length,
-        mediumAlerts: alerts.filter((a) => a.severity === 'medium').length,
-        lowAlerts: alerts.filter((a) => a.severity === 'low').length,
-        actionedAlerts: alerts.filter((a) => a.status === 'actioned').length,
+        criticalAlerts: alerts.filter((a) => a.severity && a.severity.toLowerCase() === 'critical').length,
+        highAlerts: alerts.filter((a) => a.severity && a.severity.toLowerCase() === 'high').length,
+        mediumAlerts: alerts.filter((a) => a.severity && a.severity.toLowerCase() === 'medium').length,
+        lowAlerts: alerts.filter((a) => a.severity && a.severity.toLowerCase() === 'low').length,
+        actionedAlerts: alerts.filter((a) => a.status === 'resolved').length,
         totalMonitors: monitors.length,
         activeMonitors: monitors.filter((m) => m.status === 'active').length,
       },
@@ -41,7 +41,7 @@ exports.generateReport = async (req, res, next) => {
           dataTypes: a.breachId.dataClasses,
           records: a.breachId.pwnCount,
           recommendations: a.recommendations,
-          actioned: a.status === 'actioned',
+          actioned: a.status === 'resolved',
         })),
       riskAssessment: {
         overallRisk: _calculateOverallRisk(alerts),
@@ -266,8 +266,8 @@ exports.getComplianceGuidance = async (req, res, next) => {
 
 function _calculateOverallRisk(alerts) {
   if (alerts.length === 0) return 'low';
-  const critical = alerts.filter((a) => a.severity === 'critical').length;
-  const high = alerts.filter((a) => a.severity === 'high').length;
+  const critical = alerts.filter((a) => a.severity && a.severity.toLowerCase() === 'critical').length;
+  const high = alerts.filter((a) => a.severity && a.severity.toLowerCase() === 'high').length;
   if (critical > 2) return 'critical';
   if (critical > 0 || high > 3) return 'high';
   if (high > 0) return 'medium';
@@ -291,7 +291,7 @@ function _getTopVulnerabilities(alerts) {
 
 function _getComplianceGaps(alerts) {
   const gaps = [];
-  const unactioned = alerts.filter((a) => a.status !== 'actioned' && a.severity === 'critical');
+  const unactioned = alerts.filter((a) => a.status !== 'resolved' && a.severity && a.severity.toLowerCase() === 'critical');
   if (unactioned.length > 0) {
     gaps.push({ area: 'Incident Response', gap: `${unactioned.length} critical alerts without remediation action`, priority: 'high' });
   }

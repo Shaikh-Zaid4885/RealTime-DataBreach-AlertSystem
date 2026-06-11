@@ -6,6 +6,7 @@ import api from '../api/axios';
 export default function Monitors() {
   const [monitors, setMonitors] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     document.title = 'Monitors — BreachGuard';
@@ -27,7 +28,7 @@ export default function Monitors() {
       await api.post(`/monitors/${id}/scan`);
       await fetchMonitors();
     } catch (err) {
-      alert(err.response?.data?.message || err.message || 'Scan failed');
+      setError(err.response?.data?.message || err.message || 'Scan failed');
     } finally {
       setScanningId(null);
     }
@@ -38,7 +39,7 @@ export default function Monitors() {
       await api.patch(`/monitors/${id}/toggle`);
       await fetchMonitors();
     } catch (err) {
-      alert(err.response?.data?.message || err.message || 'Toggle failed');
+      setError(err.response?.data?.message || err.message || 'Toggle failed');
     }
   };
 
@@ -47,7 +48,7 @@ export default function Monitors() {
       await api.delete(`/monitors/${id}`);
       await fetchMonitors();
     } catch (err) {
-      alert(err.response?.data?.message || err.message || 'Delete failed');
+      setError(err.response?.data?.message || err.message || 'Delete failed');
     }
   };
 
@@ -74,6 +75,12 @@ export default function Monitors() {
           />
         </div>
       </div>
+
+      {error && (
+        <div style={{ padding: 'var(--space-3) var(--space-4)', background: 'rgba(255,51,102,0.08)', border: '1px solid rgba(255,51,102,0.2)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-5)', fontSize: 'var(--text-sm)', color: 'var(--accent-red)' }}>
+          {error}
+        </div>
+      )}
 
       <MonitorList monitors={filteredMonitors} onDelete={handleDelete} onScan={handleScan} onToggle={handleToggle} scanningId={scanningId} />
     </div>

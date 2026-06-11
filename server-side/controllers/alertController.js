@@ -95,7 +95,7 @@ exports.markActionCompleted = async (req, res, next) => {
 
     if (alert.recommendations && alert.recommendations[recommendationIndex]) {
       alert.recommendations[recommendationIndex].completed = true;
-      alert.status = 'actioned';
+      alert.status = 'resolved';
       await alert.save();
     }
 

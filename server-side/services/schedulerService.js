@@ -107,7 +107,7 @@ class SchedulerService {
       isActive: true,
       status: { $in: ['monitoring', 'clean', 'breached'] },
       type: 'email',
-    }).populate('userId', 'firstName lastName email preferences fcmTokens phone');
+    }).populate('userId', 'name email alertPreferences fcmTokens phone');
 
     let checkedCount = 0;
     let breachesFound = 0;
@@ -116,7 +116,7 @@ class SchedulerService {
       try {
         if (!identifier.userId) continue;
 
-        const email = identifier.value;
+        const email = encryptionService.decrypt(identifier.value);
         const result = await xposedOrNotService.checkEmail(email);
 
         identifier.lastChecked = new Date();
@@ -165,7 +165,7 @@ class SchedulerService {
               description: breachDetail?.description || '',
             };
 
-            const analysis = breachAnalyzer.analyzeBreach(breachData);
+            const analysis = breachAnalyzer.generateSummary(breachData);
             const recommendations = recommendationEngine.generateRecommendations(analysis);
 
             if (!existingBreach) {
@@ -319,7 +319,7 @@ class SchedulerService {
     try {
       const users = await User.find({
         isActive: true,
-        'preferences.digestFrequency': 'weekly',
+        'alertPreferences.frequency': 'weekly',
       });
 
       for (const user of users) {

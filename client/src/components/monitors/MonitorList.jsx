@@ -10,7 +10,7 @@ export default function MonitorList({ monitors, onDelete, onScan, onToggle, scan
       {data.map((m) => {
         const Icon = typeIcons[m.type] || Mail;
         return (
-          <div key={m.id} className="monitor-item">
+          <div key={m._id} className="monitor-item">
             <div className={`monitor-icon ${m.type}`}>
               <Icon size={20} />
             </div>
@@ -24,13 +24,13 @@ export default function MonitorList({ monitors, onDelete, onScan, onToggle, scan
             </div>
             <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
 
-              <button className="btn-icon btn-ghost sm" title={m.status === 'active' ? 'Pause' : 'Resume'} onClick={() => onToggle?.(m.id)} style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', padding: '4px 10px' }}>
+              <button className="btn-icon btn-ghost sm" title={m.status === 'active' ? 'Pause' : 'Resume'} onClick={() => onToggle?.(m._id)} style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', padding: '4px 10px' }}>
                 {m.status === 'active' ? <><Pause size={14} /> Pause</> : <><Play size={14} /> Resume</>}
               </button>
-              <button className="btn-icon btn-ghost sm" title="Scan Now" onClick={() => onScan?.(m.id)} disabled={scanningId === m.id} style={{ color: 'var(--accent-blue)', display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', padding: '4px 10px' }}>
-                {scanningId === m.id ? <><Loader size={14} className="spin" /> Scanning...</> : <><RefreshCw size={14} /> Scan</>}
+              <button className="btn-icon btn-ghost sm" title="Scan Now" onClick={() => onScan?.(m._id)} disabled={scanningId === m._id} style={{ color: 'var(--accent-blue)', display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', padding: '4px 10px' }}>
+                {scanningId === m._id ? <><Loader size={14} className="spin" /> Scanning...</> : <><RefreshCw size={14} /> Scan</>}
               </button>
-              <button className="btn-icon btn-ghost sm" title="Delete" onClick={() => onDelete?.(m.id)} style={{ color: 'var(--accent-red)', display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', padding: '4px 10px' }}>
+              <button className="btn-icon btn-ghost sm" title="Delete" onClick={() => onDelete?.(m._id)} style={{ color: 'var(--accent-red)', display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', padding: '4px 10px' }}>
                 <Trash2 size={14} /> Delete
               </button>
             </div>

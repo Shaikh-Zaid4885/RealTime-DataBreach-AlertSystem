@@ -2,7 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import {
-  LayoutDashboard, Monitor, Bell, BarChart3, Building2, Scale,
+  LayoutDashboard, Monitor, Bell, BarChart3, Scale,
   Settings, Shield, ChevronLeft, ChevronRight, Database
 } from 'lucide-react';
 

@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import AdminRoute from './components/common/AdminRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -38,7 +38,7 @@ function App() {
               <Route path="analytics" element={<Analytics />} />
               <Route path="legal" element={<LegalAdvisory />} />
               <Route path="settings" element={<Settings />} />
-              <Route path="admin" element={<AdminDashboard />} />
+              <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

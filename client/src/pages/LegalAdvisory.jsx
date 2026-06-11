@@ -34,7 +34,7 @@ export default function LegalAdvisory() {
       // Refresh the dashboard immediately to recalculate the score
       fetchAdvisories();
     } catch (err) {
-      alert('Failed to resolve threat.');
+      setError('Failed to resolve threat.');
     }
   };
 

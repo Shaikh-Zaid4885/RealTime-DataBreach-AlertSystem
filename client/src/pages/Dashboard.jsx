@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [breaches, setBreaches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     document.title = 'Dashboard — BreachGuard';
@@ -56,7 +57,7 @@ export default function Dashboard() {
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith('.csv') && !file.name.toLowerCase().endsWith('.txt')) {
-      alert('Error: Please upload a plain text .csv or .txt file. Excel files (.xlsx) are not supported.');
+      setError('Error: Please upload a plain text .csv or .txt file. Excel files (.xlsx) are not supported.');
       return;
     }
 
@@ -73,7 +74,7 @@ export default function Dashboard() {
       }
       
       if (identifiers.length === 0) {
-        alert('No valid emails were found in the file.');
+        setError('No valid emails were found in the file.');
         return;
       }
 
@@ -83,7 +84,7 @@ export default function Dashboard() {
       // Refresh dashboard stats
       api.get('/analytics/overview').then(r => setStats(r.data?.data));
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to process bulk upload.');
+      setError(err.response?.data?.message || 'Failed to process bulk upload.');
     }
   };
 
@@ -108,6 +109,12 @@ export default function Dashboard() {
         <h1 className="page-title">Security Dashboard</h1>
         <p className="page-subtitle">Real-time overview of your data breach monitoring</p>
       </div>
+
+      {error && (
+        <div style={{ padding: 'var(--space-3) var(--space-4)', background: 'rgba(255,51,102,0.08)', border: '1px solid rgba(255,51,102,0.2)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-5)', fontSize: 'var(--text-sm)', color: 'var(--accent-red)' }}>
+          {error}
+        </div>
+      )}
 
       <div className="glass-card" style={{ marginBottom: 'var(--space-6)' }}>
         <div style={{ display: 'flex', background: 'var(--bg-secondary)', padding: '4px', borderRadius: 'var(--radius-full)', marginBottom: 'var(--space-6)', position: 'relative', width: 'fit-content', margin: '0 auto var(--space-6) auto' }}>
