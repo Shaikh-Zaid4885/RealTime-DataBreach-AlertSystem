@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Menu } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
-export default function Header({ collapsed }) {
+export default function Header({ collapsed, onMenuClick }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -32,7 +32,9 @@ export default function Header({ collapsed }) {
 
   return (
     <header className={`header ${collapsed ? 'sidebar-collapsed' : ''}`}>
-
+      <button className="mobile-menu-btn" onClick={onMenuClick} aria-label="Open menu">
+        <Menu size={24} />
+      </button>
 
       <div className="header-actions" ref={dropdownRef}>
         <div className="header-user" onClick={() => setShowDropdown(!showDropdown)}>

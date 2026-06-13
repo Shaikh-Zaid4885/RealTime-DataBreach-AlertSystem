@@ -16,7 +16,7 @@ const navItems = [
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle, mobileOpen, setMobileOpen }) {
   const { user } = useContext(AuthContext);
 
   const finalNavItems = [...navItems];
@@ -25,7 +25,13 @@ export default function Sidebar({ collapsed, onToggle }) {
   }
 
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+    <>
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div className="sidebar-mobile-overlay" onClick={() => setMobileOpen(false)} />
+      )}
+      
+      <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">
           <Shield size={20} />
@@ -54,5 +60,6 @@ export default function Sidebar({ collapsed, onToggle }) {
         </button>
       </div>
     </aside>
+    </>
   );
 }
