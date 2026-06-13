@@ -1,18 +1,13 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const mockData = [
-  { month: 'Jan', critical: 3, high: 5, medium: 8, low: 12 },
-  { month: 'Feb', critical: 2, high: 4, medium: 6, low: 10 },
-  { month: 'Mar', critical: 5, high: 8, medium: 10, low: 15 },
-  { month: 'Apr', critical: 4, high: 6, medium: 12, low: 18 },
-  { month: 'May', critical: 6, high: 9, medium: 8, low: 14 },
-  { month: 'Jun', critical: 8, high: 12, medium: 15, low: 20 },
-  { month: 'Jul', critical: 7, high: 10, medium: 13, low: 22 },
-  { month: 'Aug', critical: 5, high: 7, medium: 9, low: 16 },
-  { month: 'Sep', critical: 9, high: 14, medium: 18, low: 25 },
-  { month: 'Oct', critical: 6, high: 11, medium: 14, low: 19 },
-  { month: 'Nov', critical: 10, high: 15, medium: 20, low: 28 },
-  { month: 'Dec', critical: 8, high: 13, medium: 17, low: 23 },
+  { year: 2018, breaches: 12 },
+  { year: 2019, breaches: 18 },
+  { year: 2020, breaches: 25 },
+  { year: 2021, breaches: 30 },
+  { year: 2022, breaches: 22 },
+  { year: 2023, breaches: 35 },
+  { year: 2024, breaches: 28 },
 ];
 
 const CustomTooltip = ({ active, payload, label }) => {

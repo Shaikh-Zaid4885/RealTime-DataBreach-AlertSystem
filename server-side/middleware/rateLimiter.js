@@ -64,11 +64,6 @@ const reportLimiter = createRateLimiter({
   message: 'Too many report generation requests. Please try again in an hour.',
 });
 
-const passwordCheckLimiter = createRateLimiter({
-  windowMs: 5 * 60 * 1000,
-  max: 15,
-  message: 'Too many password check requests. Please wait 5 minutes.',
-});
 
 module.exports = {
   createRateLimiter,
@@ -77,5 +72,4 @@ module.exports = {
   apiLimiter,
   breachCheckLimiter,
   reportLimiter,
-  passwordCheckLimiter,
 };

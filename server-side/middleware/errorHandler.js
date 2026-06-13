@@ -99,13 +99,4 @@ const errorHandler = (err, req, res, next) => {
   res.status(statusCode).json(response);
 };
 
-const notFound = (req, res, next) => {
-  const error = new AppError(`Route not found: ${req.method} ${req.originalUrl}`, 404, 'NOT_FOUND');
-  next(error);
-};
-
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
-
-module.exports = { AppError, errorHandler, notFound, asyncHandler };
+module.exports = { AppError, errorHandler };

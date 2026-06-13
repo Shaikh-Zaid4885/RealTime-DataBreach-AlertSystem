@@ -39,10 +39,8 @@ export function SocketProvider({ children }) {
       listenersRef.current.forEach((callback) => callback(alert));
     });
 
-    socket.on('breach_update', (data) => {
-    });
-
     socket.on('connect_error', (err) => {
+      // Silently handle connection errors — socket.io will auto-retry
     });
 
     return () => {

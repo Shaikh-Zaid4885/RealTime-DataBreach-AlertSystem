@@ -37,8 +37,9 @@ export default function Settings() {
       return setPasswordError('Please fill in both fields.');
     }
     
-    if (passwordForm.newPassword.length < 8) {
-      return setPasswordError('New password must be at least 8 characters long.');
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+    if (!passwordRegex.test(passwordForm.newPassword)) {
+      return setPasswordError('New password must be 8-16 characters and contain uppercase, lowercase, number, and special character');
     }
 
     try {
@@ -80,7 +81,7 @@ export default function Settings() {
           <div style={{ padding: 'var(--space-5)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-5)' }}>
             <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label" style={{ fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name</label>
-              <input className="form-input" style={{ background: 'var(--bg-tertiary)', border: 'none' }} value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="John Doe" />
+              <input className="form-input" style={{ background: 'var(--bg-tertiary)', border: 'none' }} value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="Enter your full name" />
             </div>
             <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label" style={{ fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address</label>
@@ -88,7 +89,7 @@ export default function Settings() {
             </div>
             <div className="form-group" style={{ margin: 0, gridColumn: '1 / -1' }}>
               <label className="form-label" style={{ fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone Number (Optional)</label>
-              <input className="form-input" style={{ background: 'var(--bg-tertiary)', border: 'none' }} value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="+1 (555) 000-0000" />
+              <input className="form-input" style={{ background: 'var(--bg-tertiary)', border: 'none' }} value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="Enter your phone number" />
             </div>
           </div>
         </div>
@@ -172,8 +173,8 @@ export default function Settings() {
 
       {/* Password Modal */}
       {showPasswordModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'var(--space-4)' }}>
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--bg-modifier-border)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'var(--space-4)' }} onClick={() => { setShowPasswordModal(false); setPasswordError(''); setPasswordSuccess(''); }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--bg-modifier-border)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-4)', borderBottom: '1px solid var(--bg-modifier-border)' }}>
               <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600 }}>Change Password</h3>
               <button onClick={() => { setShowPasswordModal(false); setPasswordError(''); setPasswordSuccess(''); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>✕</button>
@@ -183,11 +184,11 @@ export default function Settings() {
               {passwordSuccess && <div style={{ color: 'var(--accent-green)', fontSize: 'var(--text-xs)', background: 'rgba(34, 197, 94, 0.1)', padding: '8px', borderRadius: '4px' }}>{passwordSuccess}</div>}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">Current Password</label>
-                <input type="password" className="form-input" style={{ background: 'var(--bg-tertiary)' }} value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} />
+                <input type="password" placeholder="Current password" className="form-input" style={{ background: 'var(--bg-tertiary)' }} value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} />
               </div>
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">New Password</label>
-                <input type="password" className="form-input" style={{ background: 'var(--bg-tertiary)' }} value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} />
+                <input type="password" placeholder="New password" className="form-input" style={{ background: 'var(--bg-tertiary)' }} value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} />
               </div>
             </div>
             <div style={{ padding: 'var(--space-4)', borderTop: '1px solid var(--bg-modifier-border)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)' }}>

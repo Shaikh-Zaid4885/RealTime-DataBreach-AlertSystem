@@ -8,6 +8,7 @@ import api from '../api/axios';
 export default function LegalAdvisory() {
   const [data, setData] = useState({ advisories: [], checklist: [], activeThreats: [] });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedThreatForDeletion, setSelectedThreatForDeletion] = useState(null);
 
   const fetchAdvisories = async () => {
@@ -17,7 +18,7 @@ export default function LegalAdvisory() {
         setData(res.data.data);
       }
     } catch (err) {
-      console.error(err);
+      setError(err.response?.data?.message || 'Failed to load advisories.');
     } finally {
       setLoading(false);
     }
@@ -48,6 +49,13 @@ export default function LegalAdvisory() {
         <h1 className="page-title">Personal Security & Rights</h1>
         <p className="page-subtitle">Your personalized action plan and data protection rights</p>
       </div>
+
+      {error && (
+        <div style={{ padding: 'var(--space-3) var(--space-4)', background: 'rgba(255,51,102,0.08)', border: '1px solid rgba(255,51,102,0.2)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-5)', fontSize: 'var(--text-sm)', color: 'var(--accent-red)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {error}
+          <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+        </div>
+      )}
 
       <div className="dashboard-grid" style={{ marginBottom: 'var(--space-6)' }}>
         <div className="dashboard-section">

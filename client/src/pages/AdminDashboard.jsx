@@ -113,10 +113,14 @@ export default function AdminDashboard() {
   };
 
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: 'var(--text-muted)' }}>Loading Admin Panel...</div>;
-  if (error) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: 'var(--accent-red)' }}>{error}</div>;
-
   return (
     <div>
+      {error && (
+        <div style={{ padding: 'var(--space-3) var(--space-4)', background: 'rgba(255,51,102,0.08)', border: '1px solid rgba(255,51,102,0.2)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-5)', fontSize: 'var(--text-sm)', color: 'var(--accent-red)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {error}
+          <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+        </div>
+      )}
       <div className="page-header">
         <h1 className="page-title">Admin Control Panel</h1>
         <p className="page-subtitle">Manage system users, global monitors, and system-wide security alerts.</p>

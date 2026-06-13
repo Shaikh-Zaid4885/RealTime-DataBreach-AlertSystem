@@ -35,7 +35,6 @@ export default function Alerts() {
       const res = await api.get('/alerts');
       setAlerts(res.data?.data?.alerts);
     } catch (err) {
-      console.error('Failed to fetch alerts:', err);
     }
   };
 

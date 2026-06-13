@@ -5,6 +5,8 @@ const logger = require('../utils/logger');
 exports.getAlerts = async (req, res, next) => {
   try {
     const { page = 1, limit = 20, status, severity, type } = req.query;
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 20;
     const filter = { userId: req.user.id };
 
     if (status) filter.status = status;
@@ -15,8 +17,8 @@ exports.getAlerts = async (req, res, next) => {
       .populate('breachId', 'name domain severity breachDate dataClasses pwnCount')
       .populate('identifierId', 'value')
       .sort('-createdAt')
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
 
     const alerts = alertsRaw.map((alert) => {
       const alertObj = alert.toObject();
@@ -37,8 +39,8 @@ exports.getAlerts = async (req, res, next) => {
       data: {
         alerts,
         pagination: {
-          current: parseInt(page),
-          pages: Math.ceil(total / limit),
+          current: pageNum,
+          pages: Math.ceil(total / limitNum),
           total,
         },
       },

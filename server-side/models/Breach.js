@@ -160,6 +160,7 @@ breachSchema.index({ domain: 1 });
 breachSchema.index({ source: 1 });
 breachSchema.index({ 'affectedIdentifiers.userId': 1 });
 breachSchema.index({ dataClasses: 1 });
+breachSchema.index({ name: 1 });
 breachSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Breach', breachSchema);

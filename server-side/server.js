@@ -111,6 +111,11 @@ const startServer = async () => {
     const adminEmail = process.env.ADMIN_EMAIL;
     const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD;
 
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+    if (adminPassword && !strongPasswordRegex.test(adminPassword)) {
+      logger.warn('Admin password does not meet strength requirements (uppercase, lowercase, number, special char, 8-16 chars). Please update ADMIN_DEFAULT_PASSWORD in .env');
+    }
+
     if (adminEmail && adminPassword) {
       const adminExists = await User.findOne({ email: adminEmail });
       if (!adminExists) {
@@ -156,6 +161,15 @@ startServer();
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received. Shutting down gracefully...');
+  schedulerService.stopAll();
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT received. Shutting down gracefully...');
   schedulerService.stopAll();
   server.close(() => {
     logger.info('Server closed');

@@ -16,7 +16,8 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.password) { setError('Please fill all required fields'); return; }
-    if (form.password.length < 8) { setError('Password must be at least 8 characters'); return; }
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+    if (!passwordRegex.test(form.password)) { setError('Password must be 8-16 characters and contain uppercase, lowercase, number, and special character'); return; }
     setLoading(true); setError('');
     try {
       const result = await register(form);
@@ -60,21 +61,21 @@ export default function Register() {
               <label className="form-label">Full Name *</label>
               <div style={{ position: 'relative' }}>
                 <User size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input className="form-input" placeholder="John Doe" value={form.name} onChange={(e) => update('name', e.target.value)} style={{ paddingLeft: 40 }} />
+                <input className="form-input" placeholder="Enter your full name" value={form.name} onChange={(e) => update('name', e.target.value)} style={{ paddingLeft: 40 }} />
               </div>
             </div>
             <div className="form-group">
               <label className="form-label">Email *</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input className="form-input" type="email" placeholder="john@example.com" value={form.email} onChange={(e) => update('email', e.target.value)} style={{ paddingLeft: 40 }} />
+                <input className="form-input" type="email" placeholder="Enter your email address" value={form.email} onChange={(e) => update('email', e.target.value)} style={{ paddingLeft: 40 }} />
               </div>
             </div>
             <div className="form-group">
               <label className="form-label">Password *</label>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input className="form-input" type="password" placeholder="Min 8 characters" value={form.password} onChange={(e) => update('password', e.target.value)} style={{ paddingLeft: 40 }} />
+                <input className="form-input" type="password" placeholder="8-16 chars, 1 upper, 1 lower, 1 num, 1 symbol" value={form.password} onChange={(e) => update('password', e.target.value)} style={{ paddingLeft: 40 }} />
               </div>
             </div>
 

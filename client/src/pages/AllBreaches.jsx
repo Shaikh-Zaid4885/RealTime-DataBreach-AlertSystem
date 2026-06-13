@@ -29,7 +29,6 @@ export default function AllBreaches() {
         const res = await api.get('/breaches/xposed-all');
         setBreaches(res.data?.data?.breaches || []);
       } catch (err) {
-        console.error('Failed to fetch breaches:', err);
       } finally {
         setLoading(false);
       }

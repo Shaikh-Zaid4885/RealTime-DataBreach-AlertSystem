@@ -13,7 +13,7 @@ exports.getSystemStats = async (req, res, next) => {
       User.countDocuments(),
       MonitoredIdentifier.countDocuments({ status: 'active' }),
       Alert.countDocuments(),
-      Alert.countDocuments({ type: 'breach_detected' })
+      Breach.countDocuments()
     ]);
 
     res.json({

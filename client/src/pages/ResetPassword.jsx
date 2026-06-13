@@ -18,10 +18,18 @@ export default function ResetPassword() {
     document.title = 'Reset Password — BreachGuard';
   }, []);
 
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => navigate('/login'), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+    if (!passwordRegex.test(password)) {
+      setError('Password must be 8-16 characters and contain uppercase, lowercase, number, and special character');
       return;
     }
     if (password !== confirmPassword) {
@@ -32,20 +40,14 @@ export default function ResetPassword() {
     setLoading(true);
     setError('');
 
-    let timeoutId;
     try {
       await api.put(`/auth/resetpassword/${token}`, { password });
       setSuccess(true);
-      timeoutId = setTimeout(() => {
-        navigate('/login');
-      }, 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid or expired token. Please request a new link.');
     } finally {
       setLoading(false);
     }
-
-    return () => clearTimeout(timeoutId);
   };
 
   return (
@@ -84,7 +86,7 @@ export default function ResetPassword() {
                     <input
                       type="password"
                       className="form-input"
-                      placeholder="At least 8 characters"
+                      placeholder="8-16 chars, 1 upper, 1 lower, 1 num, 1 symbol"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       style={{ paddingLeft: 40 }}
@@ -100,7 +102,7 @@ export default function ResetPassword() {
                     <input
                       type="password"
                       className="form-input"
-                      placeholder="Repeat new password"
+                      placeholder="Confirm your new password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       style={{ paddingLeft: 40 }}

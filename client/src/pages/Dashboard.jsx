@@ -27,7 +27,6 @@ export default function Dashboard() {
         const breachesData = breachesRes.data?.data?.breaches || breachesRes.data?.breaches || breachesRes.data || [];
         setBreaches(Array.isArray(breachesData) ? breachesData.slice(0, 5) : []);
       } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
       } finally {
         setLoading(false);
       }

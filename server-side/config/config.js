@@ -12,10 +12,8 @@ const config = {
   jwt: {
     secret: process.env.JWT_SECRET || 'default_jwt_secret_change_me',
     expiresIn: process.env.JWT_EXPIRE || process.env.JWT_EXPIRES_IN || '7d',
-    expire: process.env.JWT_EXPIRE || process.env.JWT_EXPIRES_IN || '7d',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'default_refresh_secret_change_me',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRE || process.env.JWT_REFRESH_EXPIRES_IN || '30d',
-    refreshExpire: process.env.JWT_REFRESH_EXPIRE || process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
 
   encryption: {
@@ -141,5 +139,12 @@ const config = {
   get nodeEnv() { return this.env; },
   get corsOrigins() { return this.cors.origins; },
 };
+
+if (config.jwt.secret.includes('default') || config.jwt.secret.includes('change_me')) {
+  throw new Error('FATAL: JWT_SECRET is not set. Please set a strong JWT_SECRET in .env');
+}
+if (config.jwt.refreshSecret.includes('default') || config.jwt.refreshSecret.includes('change_me')) {
+  throw new Error('FATAL: JWT_REFRESH_SECRET is not set. Please set a strong JWT_REFRESH_SECRET in .env');
+}
 
 module.exports = config;

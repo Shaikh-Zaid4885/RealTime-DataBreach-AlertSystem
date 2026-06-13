@@ -6,11 +6,13 @@ const schemas = {
       .messages({ 'string.min': 'Name must be at least 2 characters' }),
     email: Joi.string().email().lowercase().trim().required()
       .messages({ 'string.email': 'Please provide a valid email address' }),
-    password: Joi.string().min(8).max(128).required()
+    password: Joi.string().min(8).max(16).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/).required()
       .messages({
         'string.min': 'Password must be at least 8 characters',
+        'string.max': 'Password must be at most 16 characters',
+        'string.pattern.base': 'Password must contain uppercase, lowercase, number, and special character',
       }),
-    role: Joi.string().valid('user', 'admin').optional(),
+    role: Joi.string().valid('user').optional(),
     phone: Joi.string().trim().optional().allow(''),
     organization: Joi.string().trim().max(100).optional().allow(''),
   }),
@@ -42,8 +44,8 @@ const schemas = {
 
   changePassword: Joi.object({
     currentPassword: Joi.string().required(),
-    newPassword: Joi.string().min(8).max(128).required()
-      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/)
+    newPassword: Joi.string().min(8).max(16).required()
+      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/)
       .messages({
         'string.pattern.base': 'New password must contain uppercase, lowercase, number, and special character',
       }),

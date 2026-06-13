@@ -1,5 +1,5 @@
-import { NavLink, useLocation } from 'react-router-dom';
-import { useState, useContext } from 'react';
+import { NavLink } from 'react-router-dom';
+import { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import {
   LayoutDashboard, Monitor, Bell, BarChart3, Scale,

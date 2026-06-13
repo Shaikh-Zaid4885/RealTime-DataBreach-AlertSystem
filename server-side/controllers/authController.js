@@ -153,9 +153,9 @@ exports.changePassword = async (req, res, next) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ success: false, message: 'Both current and new password required' });
     }
-
-    if (newPassword.length < 8) {
-      return res.status(400).json({ success: false, message: 'New password must be at least 8 characters long' });
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({ success: false, message: 'New password must be 8-16 characters and contain uppercase, lowercase, number, and special character' });
     }
 
     const user = await User.findById(req.user.id).select('+password');
@@ -254,9 +254,9 @@ exports.resetPassword = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Invalid or expired token' });
     }
 
-    // Validate new password
-    if (!req.body.password || req.body.password.length < 8) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long' });
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+    if (!req.body.password || !passwordRegex.test(req.body.password)) {
+      return res.status(400).json({ success: false, message: 'Password must be 8-16 characters and contain uppercase, lowercase, number, and special character' });
     }
 
     // Set new password

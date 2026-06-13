@@ -40,7 +40,7 @@ class NotificationService {
         // Construct standard RFC 2822 email message
         const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
         const messageParts = [
-          `From: Breach Alert System <zaidshaikh26166@gmail.com>`,
+          `From: Breach Alert System <${process.env.GMAIL_USER || 'noreply@breachalert.com'}>`,
           `To: ${to}`,
           'Content-Type: text/html; charset=utf-8',
           'MIME-Version: 1.0',
@@ -117,7 +117,7 @@ class NotificationService {
           </div>
           <div class="content">
             <p>Dear ${user.name},</p>
-            <p>${analysis.nlpSummary || `A data breach has been detected that may affect your monitored identifiers.`}</p>
+            <p>${analysis.summary || `A data breach has been detected that may affect your monitored identifiers.`}</p>
             
             <div class="section">
               <h2>Breach Details</h2>
@@ -134,8 +134,8 @@ class NotificationService {
               <h2>Risk Factors</h2>
               ${analysis.riskFactors.slice(0, 3).map((rf) => `
                 <div class="risk-factor ${rf.severity === 'CRITICAL' ? 'critical' : ''}">
-                  <strong>${rf.factor}</strong>: ${rf.risk}
-                  <br><em>Action: ${rf.immediateAction}</em>
+                  <strong>${rf.type || rf.description}</strong>: ${rf.severity}
+                  <br><em>Action: ${rf.description}</em>
                 </div>
               `).join('')}
             </div>` : ''}
@@ -265,7 +265,7 @@ class NotificationService {
       const pushResult = await this.sendPushNotification(
         user.fcmTokens,
         `🚨 ${analysis.severity} Breach: ${breach.name || 'Unknown'}`,
-        analysis.nlpSummary ? analysis.nlpSummary.substring(0, 200) : 'A data breach has been detected affecting your monitored data.',
+        analysis.summary ? analysis.summary.substring(0, 200) : 'A data breach has been detected affecting your monitored data.',
         { breachId: breach._id?.toString() || '', alertId: alert?._id?.toString() || '', severity: analysis.severity }
       );
       results.push = { sent: pushResult.success, sentAt: new Date(), ...pushResult };

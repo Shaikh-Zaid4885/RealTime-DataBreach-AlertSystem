@@ -189,14 +189,14 @@ class SchedulerService {
                   identifierType: 'email',
                 }],
                 analysis: {
-                  nlpSummary: analysis.nlpSummary,
-                  riskFactors: analysis.riskFactors.map((rf) => rf.factor),
-                  attackVector: analysis.attackVector,
-                  impactAssessment: analysis.impact?.impactStatement || '',
+                  nlpSummary: analysis.summary,
+                  riskFactors: analysis.riskFactors.map((rf) => rf.description),
+                  attackVector: analysis.severity,
+                  impactAssessment: analysis.summary,
                   recommendations: recommendations.allRecommendations.slice(0, 5).map((r) => r.title),
                 },
                 legalImplications: {
-                  applicableLaws: analysis.legalImplications.map((li) => ({
+                  applicableLaws: (analysis.legalImplications || []).map((li) => ({
                     law: li.law,
                     section: li.section,
                     description: li.description,
@@ -212,7 +212,7 @@ class SchedulerService {
               identifierId: identifier._id,
               type: 'breach_detected',
               title: `Data Breach Detected: ${breachInfo.name}`,
-              message: analysis.nlpSummary || `Your email was found in the ${breachInfo.name} data breach.`,
+              message: analysis.summary || `Your email was found in the ${breachInfo.name} data breach.`,
               severity: analysis.severity,
               metadata: {
                 affectedEmail: encryptionService.maskEmail(email),
@@ -227,7 +227,7 @@ class SchedulerService {
                 description: r.description,
               })),
               legalInfo: {
-                applicableLaws: analysis.legalImplications.map((li) => li.law),
+                applicableLaws: (analysis.legalImplications || []).map((li) => li.law),
               },
             });
 
@@ -249,7 +249,7 @@ class SchedulerService {
 
             // WebSocket real-time notification
             if (this.io) {
-              this.io.to(`user:${identifier.userId._id}`).emit('breach:alert', {
+              this.io.to(identifier.userId._id.toString()).emit('breach:alert', {
                 alert: {
                   id: alert._id,
                   type: alert.type,

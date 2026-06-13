@@ -1,10 +1,10 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ShieldAlert } from 'lucide-react';
 
 const AdminRoute = ({ children }) => {
   const { user, isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -27,7 +27,7 @@ const AdminRoute = ({ children }) => {
           You do not have the required administrator privileges to view this page.
         </p>
         <button 
-          onClick={() => window.location.href = '/'} 
+          onClick={() => navigate('/')} 
           className="btn-primary"
         >
           Return to Dashboard

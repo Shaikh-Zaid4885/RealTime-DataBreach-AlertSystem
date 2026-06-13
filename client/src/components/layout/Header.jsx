@@ -19,7 +19,7 @@ export default function Header({ collapsed }) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [dropdownRef]);
+  }, []);
 
   const handleLogout = () => {
     logout();

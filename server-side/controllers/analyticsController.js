@@ -81,7 +81,7 @@ exports.getGlobalAnalytics = async (req, res, next) => {
         totalBreaches: breaches.length,
         totalRecords,
         verifiedBreaches: verifiedCount,
-        verificationRate: Math.round((verifiedCount / breaches.length) * 100) || 0
+        verificationRate: breaches.length > 0 ? Math.round((verifiedCount / breaches.length) * 100) : 0
       },
       dataTypes: topDataTypes,
       yearlyTrend: trendData,
